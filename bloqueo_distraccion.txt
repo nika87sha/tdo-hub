@@ -1,0 +1,47 @@
+# ==========================================================
+# BLOQUEO DE SITIOS WEB PARA ENFOQUE (REDIRECCIÓN A LOCALHOST)
+# La dirección 127.0.0.1 es tu localhost.
+# ==========================================================
+
+# 1. REDES SOCIALES (SOCIAL MEDIA)
+127.0.0.1       facebook.com
+127.0.0.1       www.facebook.com
+127.0.0.1       instagram.com
+127.0.0.1       www.instagram.com
+127.0.0.1       twitter.com
+127.0.0.1       www.twitter.com
+127.0.0.1       x.com
+127.0.0.1       www.x.com
+127.0.0.1       tiktok.com
+127.0.0.1       www.tiktok.com
+127.0.0.1       linkedin.com
+127.0.0.1       www.linkedin.com
+
+# 2. PLATAFORMAS DE VIDEO Y STREAMING
+# NOTA: Si necesitas YouTube para trabajo/estudios, borra estas 2 líneas.
+127.0.0.1       youtube.com
+127.0.0.1       www.youtube.com
+127.0.0.1       twitch.tv
+127.0.0.1       www.twitch.tv
+127.0.0.1       netflix.com
+127.0.0.1       www.netflix.com
+
+# 3. FOROS, CONTENIDO VIRAL Y AGREGADORES
+127.0.0.1       reddit.com
+127.0.0.1       www.reddit.com
+127.0.0.1       9gag.com
+127.0.0.1       www.9gag.com
+127.0.0.1       imgur.com
+127.0.0.1       www.imgur.com
+127.0.0.1       buzzfeed.com
+127.0.0.1       www.buzzfeed.com
+
+# 4. COMPRAS EN LÍNEA
+127.0.0.1       amazon.com
+127.0.0.1       www.amazon.com
+127.0.0.1       ebay.com
+127.0.0.1       www.ebay.com
+127.0.0.1       aliexpress.com
+127.0.0.1       www.aliexpress.com
+# ==========================================================
+
