@@ -1,0 +1,10 @@
+logs
+/old
+hosts.bak
+.tdo.log
+last-session.txt
+trash.md
+.env
+*.pyc
+__pycache__/
+.DS_Store
