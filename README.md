@@ -215,19 +215,12 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 
 ### Focus Mode
 
-**Opción A — Desde Tareas (actual):**
-1. En `tareas.sh` (`SUPER+Alt+T` o Hub → 📋 Tareas), selecciona una tarea y pulsa `Alt+d` → se marca con 🎯 y lanza focus
+1. Marca una tarea con 🎯 en tu archivo de tareas activas (desde `tareas.sh` con `Alt+d`)
 2. Activa focus: `SUPER+Alt+F` o Hub → 🍅 Enfocar
-3. Selecciona música → se bloquean distracciones + pomodoro
-4. Al terminar: Hub → 🛑 Parar Focus → **te pregunta proyecto y loguea en timew**
-
-**Opción B — Directa (recomendada si no quieres 🎯):**
-```bash
-# Lanza focus y selecciona tarea en el menú
-bash ~/.local/bin/tdo-hub/scripts/focus_mode.sh start
-# O desde Hub: 🍅 Enfocar (sin tarea previa)
-```
-Si no hay 🎯, focus_mode arranca con "Foco" genérico y al parar **tampoco pregunta proyecto** (solo si había 🎯).
+3. Selecciona música (shuffle, directorio específico, o sin música)
+4. Se bloquean distracciones y arranca pomodoro
+5. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea en timew
+6. Si no hay 🎯: focus arranca genérico y al parar **no pregunta proyecto**
 
 ### Música
 
@@ -287,78 +280,6 @@ Asegúrate de que `pomodoro-daemon.sh` esté corriendo en segundo plano (puedes 
     "exec": "~/.local/bin/tdo-hub/scripts/pomodoro-waybar.sh",
     "interval": 1
 },
-```
-
----
-
-### Facturación / Imputación de horas (nuevo)
-
-#### 1. `aw_project_map.sh` — Mapeo ventana → proyecto
-Clasifica eventos de ActivityWatch a códigos de proyecto facturables.
-
-```bash
-# Ver mapa actual
-bash scripts/aw_project_map.sh show
-
-# Clasificar un evento manualmente
-bash scripts/aw_project_map.sh classify "firefox" "JIRA-123 mi ticket"
-# → JIRA
-
-# Resumen horas por proyecto (usa AW)
-bash scripts/aw_project_map.sh summary 2026-09-01 2026-09-30
-# JIRA            45.30h (65%)
-# TERMINAL        12.50h (18%)
-# SLACK            3.20h (5%)
-# TOTAL           61.00h
-
-# Editar mapa (añade tus proyectos/códigos)
-bash scripts/aw_project_map.sh edit
-# O añadir uno rápido:
-bash scripts/aw_project_map.sh add MIPROYECTO "mi-proyecto|repo-miproyecto"
-```
-
-El mapa está en `$HUB_ROOT/project_map.json` (regex por proyecto).
-
-#### 2. `timew_invoice.sh` — CSV facturable para RRHH/ERP
-Genera CSV listo para importar: `fecha,proyecto,horas,descripción,tags`.
-
-```bash
-# Preview antes de facturar (usa tags #PROYECTO en timew)
-bash scripts/timew_invoice.sh preview 2026-09-01 2026-09-30
-# JIRA            45.30h
-# GITHUB          12.50h
-# SIN_PROYECTO     8.20h
-# TOTAL           66.00h
-
-# CSV con tags #PROYECTO (requiere etiquetar en timew)
-bash scripts/timew_invoice.sh generate 2026-09-01 2026-09-30 factura_sept.csv
-
-# CSV + clasificación automática AW (si no tienes tags)
-bash scripts/timew_invoice.sh smart 2026-09-01 2026-09-30 factura_sept.csv
-```
-
-**Salida CSV:**
-```csv
-fecha,proyecto,horas,descripcion,tags
-2026-09-15,JIRA,3.50,"JIRA-1234 arreglar login","#JIRA"
-2026-09-15,GITHUB,2.00,"PR #456 review","#GITHUB"
-```
-
-#### 3. Hook automático en Focus Mode
-Al parar focus (`SUPER+Alt+F` o Hub → 🛑 Parar Focus):
-1. Detecta la tarea marcada con 🎯 (si la hay)
-2. Pregunta proyecto (menú rofi con tus códigos)
-3. Inicia timew: `timew start "#JIRA arreglar login"`
-
-> **Sin 🎯**: focus arranca genérico y al parar **no pregunta proyecto** (útil para focus rápido sin facturar).
-
-#### Flujo diario recomendado para imputar:
-```bash
-# 1. Trabajas con focus_mode (se loguea solo al parar)
-# 2. A fin de mes:
-bash scripts/timew_invoice.sh preview 2026-09-01 2026-09-30
-bash scripts/timew_invoice.sh generate 2026-09-01 2026-09-30 ~/facturas/septiembre.csv
-# 3. Subes CSV a tu ERP/RRHH
 ```
 
 ---
