@@ -1,12 +1,20 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # ==========================================================
 # ⚙️ CONFIGURACIÓN CENTRAL DE TDO-HUB
 # ==========================================================
 
 # --- Cargar .env si existe ---
-ENV_FILE="${HUB_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)}/.env"
+# Compatible bash/zsh: BASH_SOURCE no existe en zsh
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    ENV_FILE="${HUB_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}/.env"
+elif [[ -n "${(%):-%N}" ]]; then
+    ENV_FILE="${HUB_ROOT:-$(cd "$(dirname "${(%):-%N}")" && pwd)}/.env"
+else
+    ENV_FILE="${HUB_ROOT:-$(pwd)}/.env"
+fi
 if [[ -f "$ENV_FILE" ]]; then
     set -a
+    # shellcheck disable=SC1090
     source "$ENV_FILE"
     set +a
 fi
@@ -27,6 +35,7 @@ export HUB_ROOT="${HUB_ROOT:-$HOME/.local/bin/tdo-hub}"
 export SCRIPTS_DIR="${SCRIPTS_DIR:-$HUB_ROOT/scripts}"
 export PHRASES_FILE="${PHRASES_FILE:-$HUB_ROOT/phrases.txt}"
 export DISTRACTION_FILE="${DISTRACTION_FILE:-$HUB_ROOT/bloqueo_distraccion.txt}"
+export BLOCK_FILE="${BLOCK_FILE:-$HUB_ROOT/bloqueo_distraccion.txt}"
 export LOG_DIR="${LOG_DIR:-$HOME/.config/focus}"
 export LOG_FILE="${LOG_FILE:-$LOG_DIR/$(date +%Y-%m-%d).log}"
 
@@ -34,14 +43,14 @@ export LOG_FILE="${LOG_FILE:-$LOG_DIR/$(date +%Y-%m-%d).log}"
 # Genéricos a propósito: TU layout vive en .env (ver .env.example).
 # Aquí solo defaults planos para que funcione sin .env.
 export NOTES_DIR="${NOTES_DIR:-$HOME/notes}"
-export PROJECTS_DIR="${PROJECTS_DIR:-$NOTES_DIR/projects}"
-export TODOS_DIR="${TODOS_DIR:-$NOTES_DIR/todos}"
+export PROJECTS_DIR="${PROJECTS_DIR:-$NOTES_DIR/01_projects}"
+export TODOS_DIR="${TODOS_DIR:-$NOTES_DIR/01_projects/General/todos}"
 export TODO_ACTIVO="${TODO_ACTIVO:-$TODOS_DIR/todo_ACTIVO.md}"
-export JOURNAL_DIR="${JOURNAL_DIR:-$NOTES_DIR/journal}"
+export JOURNAL_DIR="${JOURNAL_DIR:-$NOTES_DIR/02_areas/personal/journal}"
 export TEMPLATES_DIR="${TEMPLATES_DIR:-$NOTES_DIR/templates}"
-export INBOX_DIR="${INBOX_DIR:-$NOTES_DIR/inbox}"
+export INBOX_DIR="${INBOX_DIR:-$NOTES_DIR/00_inbox}"
 export WORKLOG_DIR="${WORKLOG_DIR:-$NOTES_DIR/worklog}"
-export ARCHIVE_DIR="${ARCHIVE_DIR:-$NOTES_DIR/archivo}"
+export ARCHIVE_DIR="${ARCHIVE_DIR:-$NOTES_DIR/04_archivo}"
 
 # =========== SCRIPTS ===========
 export FOCUS_SCRIPT="${FOCUS_SCRIPT:-$SCRIPTS_DIR/focus_mode.sh}"
@@ -65,6 +74,7 @@ export SESSION_LOG="${SESSION_LOG:-$HUB_ROOT/last-session.txt}"
 # → FALLBACK_SERVER → localhost. Ver resolve_aw_api() en core.sh.
 export AW_BUCKET_WINDOW="${AW_BUCKET_WINDOW:-aw-watcher-window_$(hostname)}"
 export AW_BUCKET_VIM="${AW_BUCKET_VIM:-aw-watcher-vim_$(hostname)}"
+export AW_BUCKET_SHELL="${AW_BUCKET_SHELL:-aw-shell-zsh_$(hostname)}"
 export AW_DEFAULT_SERVER="${AW_DEFAULT_SERVER:-}"
 export AW_FALLBACK_SERVER="${AW_FALLBACK_SERVER:-http://localhost:5600}"
 
@@ -74,31 +84,46 @@ export AW_BUCKET_OTRO="${AW_BUCKET_OTRO:-aw-watcher-window_$(hostname)}"
 # =========== APLICACIONES ===========
 export EDITOR="${EDITOR:-nvim}"
 
+# =========== ROFI TEMA ===========
+export ROFI_THEME="${ROFI_THEME:-$HUB_ROOT/themes/hub.rasi}"
+export ROFI_THEME_FALLBACK="${ROFI_THEME_FALLBACK:-~/.config/rofi/config.rasi}"
+
+# =========== VALIDACIÓN DE CONFIGURACIÓN ===========
+# Verificar que la configuración es coherente al cargar
+_config_validate() {
+    local errors=0
+    
+    # 1. HUB_ROOT debe existir
+    [[ -d "$HUB_ROOT" ]] || {
+        echo "[CONFIG] ERROR: HUB_ROOT no existe: $HUB_ROOT" >&2
+        ((errors++))
+    }
+    
+    # 2. Directorios base deben ser writable
+    for var in NOTES_DIR INBOX_DIR TEMPLATES_DIR JOURNAL_DIR TODOS_DIR; do
+        local dir="${!var}"
+        [[ -w "$(dirname "$dir")" ]] || {
+            echo "[CONFIG] WARN: $var parent no escribible: $(dirname "$dir")" >&2
+        }
+    done
+    
+    # 3. Archivos críticos
+    [[ -f "$PHRASES_FILE" ]] || echo "[CONFIG] WARN: PHRASES_FILE no existe: $PHRASES_FILE" >&2
+    [[ -f "$DISTRACTION_FILE" ]] || echo "[CONFIG] WARN: DISTRACTION_FILE no existe: $DISTRACTION_FILE" >&2
+    [[ -f "$TODO_ACTIVO" ]] || echo "[CONFIG] INFO: TODO_ACTIVO se creará: $TODO_ACTIVO" >&2
+    
+    # 4. ROFI theme
+    [[ -f "$ROFI_THEME" ]] || [[ -f "$ROFI_THEME_FALLBACK" ]] || echo "[CONFIG] WARN: Ningún tema rofi encontrado" >&2
+    
+    return $errors
+}
+
 # =========== FUNCIONES ===========
-log_msg() {
-    local level="$1" message="$2"
-    local timestamp=$(date +'%Y-%m-%d %H:%M:%S')
-    if [ "$DEBUG" = "true" ] || [ "$level" = "ERROR" ]; then
-        case "$level" in
-            "INFO")  echo -e "${BLUE}[INFO]${RESET} $message" >&2 ;;
-            "WARN")  echo -e "${YELLOW}[WARN]${RESET} $message" >&2 ;;
-            "ERROR") echo -e "${RED}[ERROR]${RESET} $message" >&2 ;;
-            "OK")    echo -e "${GREEN}[OK]${RESET} $message" >&2 ;;
-        esac
-    fi
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE" 2>/dev/null || true
-}
+# Funciones de logging movidas a logger.sh (core.sh lo carga)
+# require_command() movido a core.sh
+# validate_paths() integrado en validate_runtime() de core.sh
 
-require_command() {
-    command -v "$1" &>/dev/null || { log_msg "ERROR" "No encontrado: ${2:-$1}"; return 1; }
-}
-
-validate_paths() {
-    mkdir -p "$PROJECTS_DIR" "$TODOS_DIR" "$INBOX_DIR" "$WORKLOG_DIR" "$ARCHIVE_DIR"
-    mkdir -p "$JOURNAL_DIR" "$LOG_DIR" "$TEMPLATES_DIR"
-}
-
-# Parsear tareas con fecha (usado por auto-calendar, calendar-notify, calendar-sync)
+# parse_tasks() se mantiene aquí por compatibilidad
 parse_tasks() {
     [[ ! -f "$TODO_ACTIVO" ]] && return
     grep -E "^\s*-\s*\[.\].*due:" "$TODO_ACTIVO" | while IFS= read -r line; do
@@ -115,8 +140,15 @@ parse_tasks() {
 }
 
 # =========== INICIALIZACIÓN ===========
-validate_paths
-if [ "$DEBUG" = "true" ]; then
-    log_msg "INFO" "TDO-Hub configurado"
+# Crear directorios base
+mkdir -p "$PROJECTS_DIR" "$TODOS_DIR" "$INBOX_DIR" "$WORKLOG_DIR" "$ARCHIVE_DIR" "$JOURNAL_DIR" "$LOG_DIR" "$TEMPLATES_DIR" 2>/dev/null
+
+# Validar configuración
+_config_validate
+
+# Debug
+if [[ "$DEBUG" == "true" ]]; then
+    echo "[CONFIG] TDO-Hub configurado" >&2
 fi
+
 true

@@ -49,7 +49,7 @@ esac
 # ==========================================================
 
 CAT_SEL=$(echo -e "🔀 Shuffle todo\n📁 Playlists\n📂 Carpetas\n⏹️ Parar" | \
-    rofi -dmenu -p "🎵 Música" -config ~/.config/rofi/config.rasi 2>/dev/null)
+    rofi_menu "🎵 Música" 2>/dev/null)
 
 [[ -z "$CAT_SEL" ]] && exit 0
 
@@ -76,7 +76,7 @@ case "$CAT_SEL" in
         ;;
 "📁 Playlists")
         ITEM_SEL=$(echo -e "electronica (131)\naitana (99)\nmago_de_oz (739)\nlafuga (238)\npop_rock (154)\nmalicia (1270)" | \
-            rofi -dmenu -p "📁 Playlists" -config ~/.config/rofi/config.rasi 2>/dev/null)
+            rofi_menu "📁 Playlists" 2>/dev/null)
         [[ -z "$ITEM_SEL" ]] && exit 0
         PLAYLIST=$(echo "$ITEM_SEL" | sed 's/ (.*//' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
         mpc_cmd clear > /dev/null
@@ -88,7 +88,7 @@ case "$CAT_SEL" in
     "📂 Carpetas")
         # Obtener carpetas que MPD indexa
         FOLDERS=$(mpc_cmd listall | grep -v '^/' | sed 's|/.*||' | sort -u | grep -v '^$' | head -50)
-        ITEM_SEL=$(echo "$FOLDERS" | rofi -dmenu -p "📂 Carpetas" -config ~/.config/rofi/config.rasi 2>/dev/null)
+        ITEM_SEL=$(echo "$FOLDERS" | rofi_menu "📂 Carpetas" 2>/dev/null)
         [[ -z "$ITEM_SEL" ]] && exit 0
         FOLDER=$(echo "$ITEM_SEL" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
         mpc_cmd clear > /dev/null

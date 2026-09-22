@@ -15,23 +15,19 @@ N='\033[0m'
 
 # Capturar tarea con rofi
 capture_task() {
-    local task=$(rofi -dmenu -p "📝 Nueva tarea:" \
-        -mesg "Escribe la tarea (sin fecha aún)" \
-        -theme-str 'window {width: 60%;}')
+    local task=$(rofi_menu "📝 Nueva tarea:" "Escribe la tarea (sin fecha aún)" -theme-str 'window {width: 60%;}')
     
     [[ -z "$task" ]] && exit 0
     
     # Preguntar prioridad
     local priority=$(echo -e "🟡 Normal\n🔴 Urgente (!)\n🔴🔴 Crítico (!!) Cancelar" | \
-        rofi -dmenu -p "⚡ Prioridad:" \
-        -theme-str 'window {width: 40%;}')
+        rofi_menu "⚡ Prioridad:" "" -theme-str 'window {width: 40%;}')
     
     [[ "$priority" == *"Cancelar"* ]] && exit 0
     
     # Preguntar fecha con selector visual
     local date_choice=$(echo -e "📅 Hoy\n📅 Mañana\n📅 Esta semana\n📅 Próxima semana\n📅 Seleccionar fecha\n📅 Sin fecha (Backlog)" | \
-        rofi -dmenu -p "📆 ¿Cuándo?" \
-        -theme-str 'window {width: 40%;}')
+        rofi_menu "📆 ¿Cuándo?" "" -theme-str 'window {width: 40%;}')
     
     local due=""
     local today=$(date +%Y-%m-%d)

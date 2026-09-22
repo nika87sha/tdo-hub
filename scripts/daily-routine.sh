@@ -4,6 +4,7 @@
 # ==========================================================
 
 source "$(dirname "$0")/../core.sh"
+source "$(dirname "$0")/aw_client.sh"
 
 BOLD='\033[1m'
 DIM='\033[2m'
@@ -42,24 +43,27 @@ get_yesterday_stats() {
 }
 
 show_aw_summary() {
-    local AW_BASE="$(resolve_aw_api 2>/dev/null || true)"
-    [ -z "$AW_BASE" ] && return
-    local API="$AW_BASE/api/0"
-    local TODAY=$(date +%Y-%m-%d)
-    local DATA=$(curl -sL --connect-timeout 2 -m 10 "$API/buckets/${AW_BUCKET_WINDOW:-aw-watcher-window_$(hostname)}/events?limit=2000" 2>>"$HUB_ROOT/.tdo.log")
-    [[ -z "$DATA" || "$DATA" == "[]" ]] && return
-    local MSG=$(echo "$DATA" | python3 -c "
+    aw_is_running || return
+    local TOTAL_SECONDS=$(aw_total_time "$(aw_today_start)" "$(aw_today_end)" 2>/dev/null || echo 0)
+    [[ "$TOTAL_SECONDS" -eq 0 ]] && return
+    
+    local TOP_APP=$(aw_summary_today | head -1 | cut -d'|' -f2)
+    local TOTAL_HOURS=$(echo "$TOTAL_SECONDS / 3600" | bc -l)
+    local MINS=$(echo "$TOTAL_HOURS * 60" | bc -l | cut -d. -f1)
+    
+    # Count switches - simplified
+    local EVENTS=$(aw_get_events "$AW_BUCKET_WINDOW" "$(aw_today_start)" "$(aw_today_end)" 2>/dev/null)
+    local SWITCHES=0
+    if [[ -n "$EVENTS" && "$EVENTS" != "[]" ]]; then
+        SWITCHES=$(echo "$EVENTS" | python3 -c "
 import sys, json
-from collections import defaultdict
-events = [e for e in json.load(sys.stdin) if e['timestamp'][:10] == '$TODAY']
-totals = defaultdict(float)
-for e in events: totals[e['data'].get('app','?')] += e['duration']
-total = sum(totals.values())
+events = json.load(sys.stdin)
 switches = sum(1 for i in range(1,len(events)) if events[i]['data'].get('app')!=events[i-1]['data'].get('app'))
-top = max(totals, key=totals.get) if totals else '?'
-print(f'{total/60:.0f}m activo | {switches} switches | Top: {top}')
-" 2>>"$HUB_ROOT/.tdo.log")
-    [[ -n "$MSG" ]] && p "${BOLD}📊 ActivityWatch:${RST} $MSG"
+print(switches)
+" 2>/dev/null || echo 0)
+    fi
+    
+    p "${BOLD}📊 ActivityWatch:${RST} ${MINS}m activo | ${SWITCHES} switches | Top: ${TOP_APP}"
 }
 
 show_brain() {

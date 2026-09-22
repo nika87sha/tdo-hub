@@ -15,6 +15,7 @@ check_requirements() {
     command -v tmux &>/dev/null || { echo "❌ tmux no instalado"; exit 1; }
     [[ ! -d "$NOTES_DIR" ]] && mkdir -p "$NOTES_DIR"
     [[ ! -f "$TODO_ACTIVO" ]] && mkdir -p "$(dirname "$TODO_ACTIVO")" && echo "# Tareas" > "$TODO_ACTIVO"
+    # sudoers se verifica solo cuando se va a modificar /etc/hosts (en activar_focus/desactivar_focus)
 }
 
 activar_focus() {
@@ -22,7 +23,7 @@ activar_focus() {
     focus_visual_on
 
     # 1. Música (antes de bloquear red, para que rofi funcione)
-    local MUSIC_CHOICE=$(echo -e "🔀 Shuffle todo\n🎵 Miss Monique\n🎵 Electronica\n📂 Elegir carpeta...\n🔇 Sin música" | rofi -dmenu -p "🎵 ¿Música?")
+    local MUSIC_CHOICE=$(echo -e "🔀 Shuffle todo\n🎵 Miss Monique\n🎵 Electronica\n📂 Elegir carpeta...\n🔇 Sin música" | rofi_menu "🎵 ¿Música?")
     case "$MUSIC_CHOICE" in
         *"Shuffle todo")    bash "$SCRIPTS_DIR/focus_music.sh" play "/" "Todo" ;;
         *"Miss Monique")    bash "$SCRIPTS_DIR/focus_music.sh" play "Electronica/Miss Monique" "Miss Monique" ;;
@@ -32,11 +33,11 @@ activar_focus() {
         *)                  ;;  # Canceló rofi
     esac
 
-    # 2. Bloqueo de red
-    cp "$HOSTS_FILE" "$BACKUP_FILE" 2>/dev/null
-    ( cat "$BLOCK_FILE"; echo -e "\n### FOCUS MODE ACTIVADO ###" ) >> "$HOSTS_FILE"
-    systemctl restart NetworkManager
-    resolvectl flush-caches 
+    # 2. Bloqueo de red (usa privileged ops con sudoers específico)
+    backup_hosts_file "$BACKUP_FILE" || exit 1
+    append_to_hosts "$(cat "$BLOCK_FILE"; echo -e "\n### FOCUS MODE ACTIVADO ###")" || exit 1
+    restart_networkmanager || exit 1
+    flush_dns_cache 
 
     # 3. Info de la Tarea
     local TAREA_LIMPIA=$(grep "🎯" "$TODO_ACTIVO" | sed 's/.*🎯 //; s/.*\[ \] //')
@@ -123,12 +124,39 @@ desactivar_focus() {
         # Parar música
         bash "$SCRIPTS_DIR/focus_music.sh" stop 2>/dev/null
 
-        cp "$BACKUP_FILE" "$HOSTS_FILE"
+        restore_hosts_file "$BACKUP_FILE" || exit 1
+        restart_networkmanager || exit 1
         rm "$BACKUP_FILE"
-        systemctl restart NetworkManager
-        sed -i "s/🎯 //g" "$TODO_ACTIVO"
+        atomic_sed_replace "$TODO_ACTIVO" "s/🎯 //g"
         notify "✅ FOCUS MODE DESACTIVADO"
+        
+        # Hook: log proyecto en timew si hay tarea activa
+        _focus_log_project
     fi
+}
+
+# Hook: preguntar proyecto y loguear en timew
+_focus_log_project() {
+    command -v timew &>/dev/null || return 0
+    
+    # Obtener tarea marcada con 🎯 (la que se estaba haciendo)
+    local tarea=$(grep "🎯" "$TODO_ACTIVO" | head -1 | sed 's/.*🎯 //; s/ due:.*//; s/ @.*//; s/ repeat:.*//')
+    [[ -z "$tarea" ]] && return 0
+    
+    # Preguntar proyecto (rofi o stdin si no hay display)
+    local proyecto=""
+    if [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]]; then
+        proyecto=$(echo -e "JIRA\nGITHUB\nGITLAB\nSLACK\nTEAMS\nOUTLOOK\nCONFLUENCE\nDOCS\nTERMINAL\nDOCKER\nAWS\nAZURE\nMEET\nBROWSER\nOTROS\n❌ Saltar" | rofi_menu "📋 Proyecto para: $tarea")
+    else
+        read -rp "Proyecto para '$tarea' (Enter=skip): " proyecto < /dev/tty
+    fi
+    
+    [[ -z "$proyecto" || "$proyecto" == *"Saltar"* ]] && return 0
+    
+    # Log en timew con tag #proyecto
+    timew stop 2>/dev/null
+    timew start "#${proyecto}" "$tarea" 2>/dev/null
+    log_info "FOCUS_HOOK" "Logueado en timew: #${proyecto} - ${tarea}"
 }
 
 # stop/start explícitos (el hub y panic_button usan "stop").

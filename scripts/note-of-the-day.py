@@ -75,8 +75,8 @@ def main():
         titulo_nota = nombre.replace("-", " ").title()
         opciones = f"📖 Abrir\n🎲 Otra\n🚪 Salir"
         rofi_cmd = ["rofi", "-dmenu", "-p", "🎲", "-mesg", preview_texto]
-        # Usar tema rofi si existe
-        rofi_theme = os.path.expanduser("~/.config/rofi/config.rasi")
+        # Usar tema rofi del hub si existe
+        rofi_theme = os.environ.get("ROFI_THEME", os.path.expanduser("~/.config/rofi/config.rasi"))
         if os.path.exists(rofi_theme):
             rofi_cmd.extend(["-theme", rofi_theme])
         try:

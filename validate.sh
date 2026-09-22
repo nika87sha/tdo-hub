@@ -168,7 +168,7 @@ SCRIPT_COUNT=0
 for s in "$SCRIPT_DIR"/scripts/*.sh; do
     [ -f "$s" ] || continue
     SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
-    check_executable "$s" "$(basename "$s")"
+    check_executable "$s" "$(basename "$s")" || true
 done
 log_check "✓" "$SCRIPT_COUNT scripts encontrados"
 

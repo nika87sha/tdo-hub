@@ -7,9 +7,10 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
 source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/aw_client.sh"
 
 # Si viene de un atajo (sin terminal), mostrarse en tmux
-ensure_tmux_window "ayer" "$0" "$@"
+tmux_run_script "ayer" "$0" "$@"
 
 YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)
 TODAY=$(date +%Y-%m-%d)
@@ -25,14 +26,6 @@ W='\033[1;37m'
 D='\033[0;90m'
 N='\033[0m'
 
-# Detectar AW vía resolve_aw_api (todo desde .env; sin IPs aquí)
-AW_BASE="$(resolve_aw_api 2>/dev/null || true)"
-if [ -n "$AW_BASE" ]; then
-    API="$AW_BASE/api/0"
-else
-    API=""
-fi
-
 echo ""
 echo -e "  ${W}╔══════════════════════════════════════════════════╗${N}"
 echo -e "  ${W}║${N}  ${C}🔙 ¿QUÉ ESTABA HACIENDO AYER?${N}                  ${W}║${N}"
@@ -43,42 +36,24 @@ echo ""
 echo -e "  ${G}━━━ ACTIVIDAD DE AYER ━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 echo ""
 
-if [ -n "$API" ]; then
-    curl -sL --connect-timeout 2 -m 10 "$API/buckets/${AW_BUCKET_WINDOW:-aw-watcher-window_$(hostname)}/events?limit=2000" 2>/dev/null | python3 -c "
-import sys, json
-from collections import defaultdict
-from datetime import datetime, timezone
+aw_summary_yesterday | while IFS='|' read -r hours app; do
+    [[ -z "$hours" ]] && continue
+    icon="📱"
+    case "$app" in
+        firefox|chrome|brave) icon="🦊" ;;
+        Alacritty|kitty|gnome-terminal) icon="💻" ;;
+        Thunderbird|evolution) icon="📧" ;;
+        nvim|vim|code) icon="📝" ;;
+    esac
+    printf '  %s %-20s %5.1fh\n' "$icon" "$app" "$hours"
+done
 
-def local_day(ts):
-    dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone().date().isoformat()
-
-events = json.load(sys.stdin)
-yesterday = '$YESTERDAY'
-events = [e for e in events if local_day(e['timestamp']) == yesterday]
-
-totals = defaultdict(float)
-for e in events:
-    app = e['data'].get('app', 'unknown')
-    totals[app] += e['duration']
-
-total = sum(totals.values())
-if total == 0:
-    print('  Sin datos de ayer.')
-else:
-    icons = {'firefox':'🦊','Alacritty':'💻','org.mozilla.Thunderbird':'📧','nvim':'📝'}
-    for app, dur in sorted(totals.items(), key=lambda x: -x[1])[:5]:
-        mins = dur / 60
-        pct = dur / total * 100
-        icon = icons.get(app, '📱')
-        print(f'  {icon} {app:<20} {mins:5.1f}m ({pct:.0f}%)')
-    print(f'  ────────────────────')
-    print(f'  Total: {total/60:.1f} min')
-" 2>>"$HUB_ROOT/.tdo.log"
+TOTAL_HOURS=$(aw_total_time "$(aw_yesterday_start)" "$(aw_yesterday_end)" 2>/dev/null || echo 0)
+if [[ "$TOTAL_HOURS" -gt 0 ]]; then
+    printf '  ────────────────────\n'
+    aw_format_duration "$TOTAL_HOURS" | xargs -I{} printf '  Total: %s\n' "{}"
 else
-    echo -e "  ${D}(AW no disponible)${N}"
+    echo -e "  ${D}(AW no disponible o sin datos)${N}"
 fi
 
 echo ""
@@ -87,7 +62,7 @@ echo ""
 echo -e "  ${Y}━━━ JOURNAL DE AYER ━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 echo ""
 
-JOURNAL_DIR="${JOURNAL_DIR:-$HOME/notes/02_areas/personal/journal}"
+# JOURNAL_DIR ya viene de config.sh
 JOURNAL_FILE=""
 
 # Ayer primero: ruta directa YYYY/MM/YYYY-MM-DD.md
@@ -115,7 +90,7 @@ echo ""
 echo -e "  ${M}━━━ TAREAS PENDIENTES ━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 echo ""
 
-ACTIVE_TODO="${TODO_ACTIVO:-$HOME/notes/01_projects/General/todos/todo_ACTIVO.md}"
+ACTIVE_TODO="${TODO_ACTIVO}"
 
 if [ -f "$ACTIVE_TODO" ]; then
     PENDING=$(grep -c '^\- \[ \]' "$ACTIVE_TODO" 2>/dev/null)

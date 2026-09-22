@@ -6,6 +6,9 @@ if [[ -L "$SCRIPT_PATH" ]]; then
 fi
 DIR_ACTUAL="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
+# Exportar HUB_ROOT ANTES de cargar config
+export HUB_ROOT="$DIR_ACTUAL"
+
 # Detectar SO y cargar config apropiada
 if [[ -f /etc/os-release ]]; then
     . /etc/os-release
@@ -128,9 +131,120 @@ build_context_msg() {
 
 # --- FEEDBACK AL SALIR ---
 session_feedback() {
-    local done_today=$(grep -c "\[x\] $(date +%Y-%m-%d)" "$TODO_ACTIVO" 2>/dev/null || echo 0)
-    local streak=$(bash "$SCRIPTS_DIR/streak-tracker.sh" 2>/dev/null || echo 0)
+    local done_today=$(grep -c "\[x\] $(date +%Y-%m-%d)" "$TODO_ACTIVO" 2>/dev/null)
+    [[ -z "$done_today" ]] && done_today=0
+    local streak=$(bash "$SCRIPTS_DIR/streak-tracker.sh" 2>/dev/null)
+    [[ -z "$streak" ]] && streak=0
     notify "TDO" "✅ $done_today hoy · 🔥 $streak días"
+}
+
+# --- DOCTOR ---
+_doctor() {
+    echo -e "\n${BLUE}╔════════════════════════════════════════════════╗${RESET}"
+    echo -e "${BLUE}║${RESET}  🏥 TDO-HUB DOCTOR                            ${BLUE}║${RESET}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════╝${RESET}\n"
+    
+    local issues=0
+    local warnings=0
+    
+    # 1. Dependencias críticas
+    echo -e "${BLUE}📦 Dependencias Críticas:${RESET}"
+    for cmd in bash tmux nvim; do
+        if command -v "$cmd" &>/dev/null; then
+            echo -e "  ${GREEN}✓${RESET} $cmd"
+        else
+            echo -e "  ${RED}✗${RESET} $cmd (CRÍTICO)"
+            ((issues++))
+        fi
+    done
+    
+    # 2. Dependencias recomendadas
+    echo -e "\n${BLUE}🎁 Dependencias Recomendadas:${RESET}"
+    for cmd in rofi fzf rg notify-send mpc timew; do
+        if command -v "$cmd" &>/dev/null; then
+            echo -e "  ${GREEN}✓${RESET} $cmd"
+        else
+            echo -e "  ${YELLOW}⚠${RESET} $cmd (recomendado)"
+            ((warnings++))
+        fi
+    done
+    
+    # 3. Configuración
+    echo -e "\n${BLUE}⚙️ Configuración:${RESET}"
+    [[ -f "$HUB_ROOT/.env" ]] && echo -e "  ${GREEN}✓${RESET} .env existe" || echo -e "  ${YELLOW}⚠${RESET} .env no encontrado (usa .env.example)"
+    [[ -f "$HUB_ROOT/config.sh" ]] && echo -e "  ${GREEN}✓${RESET} config.sh" || echo -e "  ${RED}✗${RESET} config.sh faltante"
+    
+    # 4. Directorios
+    echo -e "\n${BLUE}📁 Directorios:${RESET}"
+    for var in NOTES_DIR INBOX_DIR TEMPLATES_DIR JOURNAL_DIR TODOS_DIR; do
+        local dir="${!var}"
+        if [[ -d "$dir" ]]; then
+            echo -e "  ${GREEN}✓${RESET} $var: $dir"
+        else
+            echo -e "  ${YELLOW}⚠${RESET} $var no existe: $dir (se creará)"
+            ((warnings++))
+        fi
+    done
+    
+    # 5. Archivos
+    echo -e "\n${BLUE}📄 Archivos:${RESET}"
+    [[ -f "$TODO_ACTIVO" ]] && echo -e "  ${GREEN}✓${RESET} TODO_ACTIVO" || echo -e "  ${YELLOW}⚠${RESET} TODO_ACTIVO no existe"
+    [[ -f "$BLOCK_FILE" ]] && echo -e "  ${GREEN}✓${RESET} bloqueo_distraccion.txt" || echo -e "  ${RED}✗${RESET} bloqueo_distraccion.txt faltante"
+    [[ -f "$PHRASES_FILE" ]] && echo -e "  ${GREEN}✓${RESET} phrases.txt" || echo -e "  ${YELLOW}⚠${RESET} phrases.txt no existe"
+    
+    # 6. Focus mode (sudoers)
+    echo -e "\n${BLUE}🛡️ Focus Mode:${RESET}"
+    if [[ -w "/etc/hosts" ]]; then
+        echo -e "  ${GREEN}✓${RESET} /etc/hosts escribible"
+    elif check_sudoers_setup &>/dev/null; then
+        echo -e "  ${GREEN}✓${RESET} sudoers configurado"
+    else
+        echo -e "  ${RED}✗${RESET} sudoers NO configurado"
+        echo -e "    ${YELLOW}Fix:${RESET} sudo visudo -f /etc/sudoers.d/tdo-hub < $HUB_ROOT/scripts/sudoers-tdo"
+        ((issues++))
+    fi
+    
+    # 7. ActivityWatch
+    echo -e "\n${BLUE}📊 ActivityWatch:${RESET}"
+    if aw_is_running 2>/dev/null; then
+        local api=$(_aw_resolve_api 2>/dev/null)
+        echo -e "  ${GREEN}✓${RESET} Conectado: $api"
+    else
+        echo -e "  ${YELLOW}⚠${RESET} No detectado (stats no funcionarán)"
+        ((warnings++))
+    fi
+    
+    # 8. Tmux
+    echo -e "\n${BLUE}🖥️ Tmux:${RESET}"
+    if tmux list-sessions 2>/dev/null | head -1 | grep -q .; then
+        local sessions=$(tmux list-sessions 2>/dev/null | wc -l)
+        echo -e "  ${GREEN}✓${RESET} $sessions sesión(es) activa(s)"
+    else
+        echo -e "  ${YELLOW}⚠${RESET} Sin sesiones (se crearán al usar hub)"
+        ((warnings++))
+    fi
+    
+    # 9. Scripts ejecutables
+    echo -e "\n${BLUE}🔧 Scripts:${RESET}"
+    local script_count=0
+    local exec_count=0
+    for s in "$SCRIPTS_DIR"/*.sh; do
+        [[ -f "$s" ]] || continue
+        ((script_count++))
+        [[ -x "$s" ]] && ((exec_count++))
+    done
+    echo -e "  ${GREEN}✓${RESET} $exec_count/$script_count scripts ejecutables"
+    
+    # Resumen
+    echo -e "\n${BLUE}═══════════════════════════════════════════════════${RESET}"
+    if [[ $issues -eq 0 && $warnings -eq 0 ]]; then
+        echo -e "${GREEN}✅ Sistema sano - listo para usar${RESET}"
+    elif [[ $issues -eq 0 ]]; then
+        echo -e "${YELLOW}⚠️  $warnings advertencia(s) - funcional pero revisar${RESET}"
+    else
+        echo -e "${RED}❌ $issues error(es) crítico(s) - necesita atención${RESET}"
+    fi
+    echo -e "${BLUE}═══════════════════════════════════════════════════${RESET}\n"
 }
 
 # --- ENFOCAR ---
@@ -169,7 +283,7 @@ _open_win() {
 
 # --- MENÚ PRINCIPAL (pantalla única, 2 columnas vía themes/hub.rasi) ---
 ctx=$(build_context_msg)
-ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🎲 Redescubrir\n🍅 Enfocar\n🛑 Parar Focus\n⏱️ Time\n🧠 Flow\n🎁 Reward\n📊 Stats\n🎵 Música\n📥 Organizar\n🔄 Sync\n↩️ Undo\n🛑 Pánico\n⚙️ Config" | rofi -dmenu -p "Hub" -mesg "$ctx" -config "$DIR_ACTUAL/themes/hub.rasi")
+ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🎲 Redescubrir\n🍅 Enfocar\n🛑 Parar Focus\n⏱️ Time\n🧠 Flow\n🎁 Reward\n📊 Stats\n🎵 Música\n📥 Organizar\n🔄 Sync\n🔁 Jira Sync\n📅 Outlook Focus\n📋 Weekly Review\n↩️ Undo\n🛑 Pánico\n⚙️ Config" | rofi_menu "Hub" "$ctx")
 
 # --- DISPATCH DE ACCIONES (menú rofi o directo: hub.sh <accion>) ---
 run_action() {
@@ -190,12 +304,16 @@ run_action() {
         redescubrir) a="🎲 Redescubrir" ;;
         organizar) a="📥 Organizar" ;;
         sync) a="🔄 Sync" ;;
+        jira) a="🔁 Jira Sync" ;;
+        outlook) a="📅 Outlook Focus" ;;
+        weekly) a="📋 Weekly Review" ;;
         undo) a="↩️ Undo" ;;
         panico) a="🛑 Pánico" ;;
         config) a="⚙️ Config" ;;
+        doctor) a="🏥 Doctor" ;;
         help|--help|-h)
             echo "Uso: hub.sh [accion]"
-            echo "Acciones: capturar buscar tareas journal ayer enfocar parar time flow reward stats musica redescubrir organizar sync undo panico config"
+            echo "Acciones: capturar buscar tareas journal ayer enfocar parar time flow reward stats musica redescubrir organizar sync jira outlook weekly undo panico config doctor"
             echo "Sin args: menú rofi completo."
             return 0
             ;;
@@ -219,7 +337,7 @@ run_action() {
         ;;
     *"Parar Focus"*)
         timew stop 2>/dev/null
-        zsh "$FOCUS_SCRIPT" stop 2>&1 | head -5
+        bash "$FOCUS_SCRIPT" stop 2>&1 | head -5
         notify "🛑 Focus parado"
         ;;
     *"Time"*)
@@ -247,6 +365,15 @@ run_action() {
     *"Sync"*)
         _open_win "sync" "bash '$SCRIPTS_DIR/sync.sh'"
         ;;
+    *"Jira Sync"*)
+        _open_win "jira" "bash '$SCRIPTS_DIR/jira-sync.sh sync'"
+        ;;
+    *"Outlook Focus"*)
+        _open_win "outlook" "bash '$SCRIPTS_DIR/outlook-focus.sh sync'"
+        ;;
+    *"Weekly Review"*)
+        _open_win "weekly" "bash '$SCRIPTS_DIR/weekly-review.sh open'"
+        ;;
     *"Undo"*)
         bash "$SCRIPTS_DIR/undo.sh"
         ;;
@@ -255,6 +382,9 @@ run_action() {
         ;;
     *"Config"*)
         bash "$SCRIPTS_DIR/config-menu.sh"
+        ;;
+    *"Doctor"*)
+        _doctor
         ;;
         *) echo "Acción desconocida: $a — usa: hub.sh help" >&2; return 1 ;;
     esac

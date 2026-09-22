@@ -30,7 +30,7 @@ brain_append() {
 
 main() {
     require_command "rofi" "Rofi" || exit 1
-    local texto=$(rofi -dmenu -p "🧠 Brain dump" -mesg "3 palabras bastan (Esc cancela)" 2>/dev/null)
+    local texto=$(rofi_menu "🧠 Brain dump" "3 palabras bastan (Esc cancela)" 2>/dev/null)
     [[ -z "$texto" ]] && exit 0
     brain_append "$texto"
 }

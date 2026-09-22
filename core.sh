@@ -4,46 +4,94 @@ source "$HUB_ROOT/config.sh"
 
 set -o pipefail
 
-# =========== NOTIFICACIONES ===========
-notify() {
-    local msg="${2:-$1}"
-    command -v notify-send &>/dev/null && notify-send "TDO Hub" "$msg" --icon=task-accepted
-    echo "[$(date +%H:%M:%S)] $msg" >> "$HUB_ROOT/.tdo.log"
+# =========== SANITIZE ===========
+source "$HUB_ROOT/scripts/sanitize.sh"
+
+# =========== ATOMIC FILE OPS ===========
+# Reemplazo atómico usando archivo temporal + mv (evita corrupción)
+atomic_sed_replace() {
+    local file="$1"
+    local sed_expr="$2"
+    local tmp="${file}.tmp.$$"
+    
+    sed "$sed_expr" "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
-# Error a log SIN ensuciar stdout: los scripts redirigen aquí su
-# stderr en vez de a 2>/dev/null (que escondía bugs reales).
-log_err() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] [ERROR] $*" >> "${HUB_ROOT:-$HOME/.local/bin/tdo-hub}/.tdo.log"
+# Lectura atómica con lock (evita race conditions)
+atomic_read_tasks() {
+    local file="$1"
+    local tmp="${file}.read.$$"
+    (
+        flock -x 200
+        cat "$file" > "$tmp"
+        cat "$tmp"
+    ) 200>"$file.lock"
+    rm -f "$tmp" "$file.lock"
 }
 
-log_msg() {
-    local level="${1:-INFO}" msg="${2:-}"
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] [$level] $msg" >> "$HUB_ROOT/.tdo.log"
+# Escritura atómica con lock
+atomic_write_tasks() {
+    local file="$1"
+    local content="$2"
+    local tmp="${file}.tmp.$$"
+    printf '%s\n' "$content" > "$tmp" && mv "$tmp" "$file"
 }
 
-log_ok() {
-    local label="$1" msg="${2:-$1}"
-    echo -e "${GREEN}✓ [$label] $msg${RESET}"
-    log_msg "OK" "[$label] $msg"
+# =========== PRIVILEGED OPS ===========
+# Operaciones que requieren sudo - usando reglas sudoers específicas
+# Estas funciones fallan explícitamente si sudoers no está configurado
+
+# Backup /etc/hosts
+backup_hosts_file() {
+    local backup_file="$1"
+    sudo /usr/bin/cp /etc/hosts "$backup_file" 2>/dev/null || {
+        log_err "PRIVOPS" "Failed to backup /etc/hosts (sudoers missing?)"
+        return 1
+    }
 }
 
-log_error() {
-    local label="$1" msg="${2:-$1}"
-    echo -e "${RED}✗ [$label] $msg${RESET}" >&2
-    log_msg "ERROR" "[$label] $msg"
+# Restaurar /etc/hosts desde backup
+restore_hosts_file() {
+    local backup_file="$1"
+    sudo /usr/bin/cp "$backup_file" /etc/hosts 2>/dev/null || {
+        log_err "PRIVOPS" "Failed to restore /etc/hosts (sudoers missing?)"
+        return 1
+    }
 }
 
-log_warn() {
-    local label="$1" msg="${2:-$1}"
-    echo -e "${YELLOW}⚠ [$label] $msg${RESET}"
-    log_msg "WARN" "[$label] $msg"
+# Añadir líneas a /etc/hosts (para bloqueo)
+append_to_hosts() {
+    local content="$1"
+    printf '%s\n' "$content" | sudo /usr/bin/tee -a /etc/hosts >/dev/null 2>&1 || {
+        log_err "PRIVOPS" "Failed to append to /etc/hosts (sudoers missing?)"
+        return 1
+    }
 }
 
-log_info() {
-    local label="$1" msg="${2:-$1}"
-    log_msg "INFO" "[$label] $msg"
+# Reiniciar NetworkManager
+restart_networkmanager() {
+    sudo /usr/bin/systemctl restart NetworkManager 2>/dev/null || {
+        log_err "PRIVOPS" "Failed to restart NetworkManager (sudoers missing?)"
+        return 1
+    }
 }
+
+# Limpiar cache DNS
+flush_dns_cache() {
+    sudo /usr/bin/resolvectl flush-caches 2>/dev/null || {
+        log_warn "PRIVOPS" "Failed to flush DNS cache (non-critical)"
+        return 1
+    }
+}
+
+# Verificar que sudoers está configurado
+check_sudoers_setup() {
+    sudo -n /usr/bin/cp /etc/hosts /dev/null 2>/dev/null && \
+    sudo -n /usr/bin/systemctl restart NetworkManager 2>/dev/null
+}
+
+# =========== LOGGER ===========
+source "$HUB_ROOT/scripts/logger.sh"
 
 require_command() {
     local cmd="$1" name="${2:-$1}"
@@ -58,6 +106,70 @@ error_exit() {
     notify "Error: $1"
     return 1
 }
+
+# =========== RUNTIME VALIDATION ===========
+# Validación al inicio de cada script - llama automáticamente al sourcear core.sh
+# Verifica: dependencias, paths, permisos, configuración
+validate_runtime() {
+    local script_name="${1:-${BASH_SOURCE[1]##*/}}"
+    local errors=0
+    
+    # 1. Comandos críticos
+    for cmd in bash tmux nvim; do
+        command -v "$cmd" &>/dev/null || {
+            log_error "VALIDATE" "[$script_name] Comando crítico faltante: $cmd"
+            ((errors++))
+        }
+    done
+    
+    # 2. Comandos recomendados (warning only)
+    for cmd in rofi fzf rg notify-send mpc timew; do
+        command -v "$cmd" &>/dev/null || {
+            log_warn "VALIDATE" "[$script_name] Comando recomendado faltante: $cmd"
+        }
+    done
+    
+    # 3. Directorios requeridos
+    for dir in "$NOTES_DIR" "$INBOX_DIR" "$TEMPLATES_DIR" "$JOURNAL_DIR" "$TODOS_DIR"; do
+        [[ -d "$dir" ]] || {
+            log_warn "VALIDATE" "[$script_name] Directorio no existe (se creará): $dir"
+            mkdir -p "$dir" 2>/dev/null || {
+                log_error "VALIDATE" "[$script_name] No se puede crear: $dir"
+                ((errors++))
+            }
+        }
+    done
+    
+    # 4. Archivos requeridos
+    [[ -f "$TODO_ACTIVO" ]] || {
+        mkdir -p "$(dirname "$TODO_ACTIVO")"
+        echo "# Tareas" > "$TODO_ACTIVO"
+        log_info "VALIDATE" "[$script_name] Creado $TODO_ACTIVO"
+    }
+    
+    [[ -f "$BLOCK_FILE" ]] || {
+        log_warn "VALIDATE" "[$script_name] Archivo de bloqueo no encontrado: $BLOCK_FILE"
+    }
+    
+    # 5. Permisos de escritura
+    for file in "$TODO_ACTIVO" "$TODO_TRASH" "$SESSION_LOG"; do
+        [[ -w "$(dirname "$file")" ]] || {
+            log_error "VALIDATE" "[$script_name] Sin escritura en: $(dirname "$file")"
+            ((errors++))
+        }
+    done
+    
+    # 6. Verificar /etc/hosts para focus mode
+    [[ -w "/etc/hosts" ]] || check_sudoers_setup &>/dev/null || {
+        log_warn "VALIDATE" "[$script_name] Focus mode requiere sudoers configurado"
+    }
+    
+    return $errors
+}
+
+# Auto-validar al sourcear (solo si no está en modo test y es el script principal)
+# Solo validar si BASH_SOURCE[1] es el script que se está ejecutando (no sourced)
+[[ "${TD_VALIDATE:-auto}" != "never" ]] && [[ "${BASH_SOURCE[0]}" == "${BASH_SOURCE[1]}" ]] && validate_runtime "${BASH_SOURCE[1]##*/}" 2>/dev/null
 
 # =========== TMUX ===========
 # Si un script de solo-salida (stats, yesterday, sync) se lanza sin
@@ -76,39 +188,153 @@ _started_by_gui() {
     return 1
 }
 
-ensure_tmux_window() {
-    local win="$1"; shift
-    [[ -n "${TMUX:-}" ]] && return 0
-    [[ -t 1 ]] && return 0
-    _started_by_gui || return 0
-    local script="$1"; shift || true
-    [[ -z "$script" ]] && return 0
-    tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION"
-    if ! tmux list-windows -t "$SESSION" -F '#{window_name}' 2>/dev/null | grep -q "^${win}$"; then
-        tmux new-window -t "$SESSION" -n "$win"
-        sleep 0.5
-    fi
-    tmux send-keys -t "$SESSION:$win" C-u "clear && bash '$script' $* && echo '--- [Enter para cerrar] ---' && read _" C-m
-    tmux select-window -t "$SESSION:$win" 2>/dev/null
-    hyprctl dispatch focuswindow "class:Alacritty" 2>/dev/null
-    exit 0
+# =========== ROFI HELPER ===========
+source "$HUB_ROOT/scripts/rofi.sh"
+
+# =========== TMUX MANAGER ===========
+# Gestor centralizado de ventanas/paneles tmux
+# Elimina duplicación en 7 scripts
+
+# Estado interno
+_TMUX_TERMINAL_CLASS="${TMUX_TERMINAL_CLASS:-Alacritty}"
+
+# Inicializar sesión tmux (idempotente)
+tmux_init_session() {
+    tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION" 2>/dev/null
 }
 
-run_in_tmux() {
-    local CMD="$1"
-    local WIN="${2:-$(tmux display-message -t "$SESSION" -p '#{window_name}' 2>/dev/null || echo 'zsh')}"
-    tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION"
-    if tmux list-windows -t "$SESSION" -F '#{window_name}' 2>/dev/null | grep -q "^${WIN}$"; then
-        tmux send-keys -t "$SESSION:$WIN" C-u "clear && $CMD" C-m
-        tmux select-window -t "$SESSION:$WIN" 2>/dev/null
-    else
-        tmux new-window -t "$SESSION" -n "$WIN"
-        sleep 0.3
-        tmux send-keys -t "$SESSION:$WIN" "$CMD" Enter
-        tmux select-window -t "$SESSION:$WIN" 2>/dev/null
+# Obtener o crear ventana con nombre
+# Uso: tmux_get_window "nombre" "comando_inicial"
+tmux_get_window() {
+    local name="$1"
+    local init_cmd="${2:-}"
+    
+    tmux_init_session
+    
+    if tmux list-windows -t "$SESSION" -F '#{window_name}' 2>/dev/null | grep -q "^${name}$"; then
+        # Ventana existe - verificar si hay nvim/vim corriendo
+        local proc=$(tmux list-panes -t "$SESSION:$name" -F '#{pane_current_command}' 2>/dev/null | head -1)
+        if [[ "$proc" == "nvim" || "$proc" == "vim" ]]; then
+            tmux select-window -t "$SESSION:$name" 2>/dev/null
+            tmux_focus_terminal
+            return 0
+        fi
+        # No hay editor - enviar comando si se proporciona
+        [[ -n "$init_cmd" ]] && tmux send-keys -t "$SESSION:$name" C-u "$init_cmd" C-m
+        tmux select-window -t "$SESSION:$name" 2>/dev/null
+        tmux_focus_terminal
+        return 0
     fi
-    hyprctl dispatch focuswindow "class:Alacritty" 2>/dev/null
+    
+    # Crear nueva ventana
+    tmux new-window -t "$SESSION" -n "$name" 2>/dev/null
+    sleep 0.3
+    [[ -n "$init_cmd" ]] && tmux send-keys -t "$SESSION:$name" "$init_cmd" C-m
+    tmux select-window -t "$SESSION:$name" 2>/dev/null
+    tmux_focus_terminal
 }
+
+# Crear/reusar ventana para script de salida (stats, sync, etc)
+# Uso: tmux_run_script "nombre_ventana" "script_path" [args...]
+tmux_run_script() {
+    local name="$1"
+    local script="$2"
+    shift 2
+    
+    tmux_init_session
+    
+    if tmux list-windows -t "$SESSION" -F '#{window_name}' 2>/dev/null | grep -q "^${name}$"; then
+        local proc=$(tmux list-panes -t "$SESSION:$name" -F '#{pane_current_command}' 2>/dev/null | head -1)
+        if [[ "$proc" == "nvim" || "$proc" == "vim" ]]; then
+            tmux select-window -t "$SESSION:$name" 2>/dev/null
+            tmux_focus_terminal
+            return 0
+        fi
+    else
+        tmux new-window -t "$SESSION" -n "$name" 2>/dev/null
+        sleep 0.3
+    fi
+    
+    local cmd="clear && bash '$script' $* && echo '--- [Enter para cerrar] ---' && read _"
+    tmux send-keys -t "$SESSION:$name" C-u "$cmd" C-m
+    tmux select-window -t "$SESSION:$name" 2>/dev/null
+    tmux_focus_terminal
+}
+
+# Enfocar terminal (Hyprland)
+tmux_focus_terminal() {
+    command -v hyprctl &>/dev/null && [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && \
+        hyprctl dispatch focuswindow "class:${_TMUX_TERMINAL_CLASS}" 2>/dev/null
+}
+
+# Enviar comando a ventana existente
+# Uso: tmux_send "nombre_ventana" "comando"
+tmux_send() {
+    local name="$1"
+    local cmd="$2"
+    tmux_init_session
+    
+    if tmux list-windows -t "$SESSION" -F '#{window_name}' 2>/dev/null | grep -q "^${name}$"; then
+        tmux send-keys -t "$SESSION:$name" C-u "$cmd" C-m
+        tmux select-window -t "$SESSION:$name" 2>/dev/null
+        tmux_focus_terminal
+        return 0
+    fi
+    return 1
+}
+
+# Matar ventana por nombre
+tmux_kill_window() {
+    local name="$1"
+    tmux kill-window -t "$SESSION:$name" 2>/dev/null
+}
+
+# Dividir ventana (horizontal/vertical)
+# Uso: tmux_split "nombre_ventana" "h|v" [porcentaje]
+tmux_split() {
+    local name="$1"
+    local direction="$2"
+    local percent="${3:-50}"
+    local target_pane="${4:-0}"
+    
+    tmux_init_session
+    if [[ "$direction" == "h" ]]; then
+        tmux split-window -h -p "$percent" -t "$SESSION:$name.$target_pane" 2>/dev/null
+    else
+        tmux split-window -v -p "$percent" -t "$SESSION:$name.$target_pane" 2>/dev/null
+    fi
+    sleep 0.2
+}
+
+# Seleccionar panel específico
+tmux_select_pane() {
+    local name="$1"
+    local pane="$2"
+    tmux select-pane -t "$SESSION:$name.$pane" 2>/dev/null
+}
+
+# Enviar comando a panel específico
+tmux_send_pane() {
+    local name="$1"
+    local pane="$2"
+    local cmd="$3"
+    tmux send-keys -t "$SESSION:$name.$pane" C-u "$cmd" C-m
+}
+
+# Compatibilidad: ensure_tmux_window (deprecated, use tmux_get_window)
+ensure_tmux_window() {
+    local win="$1"; shift
+    tmux_run_script "$win" "$@"
+}
+
+# Compatibilidad: run_in_tmux (deprecated, use tmux_get_window/tmux_send)
+run_in_tmux() {
+    local cmd="$1"
+    local win="${2:-zsh}"
+    tmux_get_window "$win" "$cmd"
+}
+
+# =========== ACTIVITYWATCH ===========
 
 # =========== ACTIVITYWATCH ===========
 # Resuelve la URL base de ActivityWatch (sin /api/0) probando hasta la primera que responda:
@@ -245,8 +471,8 @@ complete_task_with_recurrence() {
     local recurrence=$(parse_recurrence "$task")
     timew stop 2>/dev/null
     echo "- [x] $(date +%Y-%m-%d) $task" >> "$TODO_TRASH"
-    local task_esc=$(printf '%s\n' "$task_base" | sed 's/[.[\*^$()\/]/\\&/g')
-    sed -i "s/- \[ \] $task_esc/- [x] $task_esc/" "$TODO_ACTIVO"
+    local task_esc=$(sanitize_for_sed "$task_base")
+    atomic_sed_replace "$TODO_ACTIVO" "s/- \[ \] $task_esc/- [x] $task_esc/"
     notify "¡Hecho!"
     if [[ -n "$recurrence" ]]; then
         local new_task=$(expand_recurring_task "$task")
