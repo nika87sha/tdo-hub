@@ -42,4 +42,5 @@ else
     tmux select-window -t "$SESSION:journal" 2>/dev/null
 fi
 
-hyprctl dispatch focuswindow "class:Alacritty" 2>/dev/null
+hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
+notify-send -u low "📓 Journal" "Abierto: $FILE" 2>/dev/null || true

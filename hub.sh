@@ -23,6 +23,8 @@ if [[ -f "$DIR_ACTUAL/config-${DISTRO_ID}.sh" ]]; then
 fi
 
 source "$DIR_ACTUAL/core.sh"
+# aw_client define aw_is_running/_aw_resolve_api (doctor y stats)
+source "$DIR_ACTUAL/scripts/aw_client.sh"
 
 # --- DETECCIÓN DE SESIÓN TMUX ---
 # Si ya estamos dentro de tmux, usar la sesión actual (vía display-message,
@@ -49,7 +51,7 @@ open_note() {
             tmux send-keys -t "$SESSION:$win" "nvim '$file'" Enter
         elif [[ "$proc" == "nvim" || "$proc" == "vim" ]]; then
             tmux select-window -t "$SESSION:$win" 2>/dev/null
-            hyprctl dispatch focuswindow "class:Alacritty" 2>/dev/null
+            hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
             return
         else
             tmux send-keys -t "$SESSION:$win" "nvim '$file'" Enter
@@ -60,7 +62,7 @@ open_note() {
         tmux send-keys -t "$SESSION:$win" "nvim '$file'" Enter
     fi
     tmux select-window -t "$SESSION:$win" 2>/dev/null
-    hyprctl dispatch focuswindow "class:Alacritty" 2>/dev/null
+    hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
 }
 
 # --- NOTA ALEATORIA AL INICIAR (solo accesible desde ⚙️ Más → Redescubrir) ---
@@ -277,13 +279,17 @@ _open_win() {
         tmux send-keys -t "$SESSION:$name" "$cmd" Enter
         tmux select-window -t "$SESSION:$name" 2>/dev/null
     fi
-    hyprctl dispatch focuswindow "class:Alacritty" 2>/dev/null
+    hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
 }
 
 
 # --- MENÚ PRINCIPAL (pantalla única, 2 columnas vía themes/hub.rasi) ---
-ctx=$(build_context_msg)
-ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🎲 Redescubrir\n🍅 Enfocar\n🛑 Parar Focus\n⏱️ Time\n🧠 Flow\n🎁 Reward\n📊 Stats\n🎵 Música\n📥 Organizar\n🔄 Sync\n🔁 Jira Sync\n📅 Outlook Focus\n📋 Weekly Review\n↩️ Undo\n🛑 Pánico\n⚙️ Config" | rofi_menu "Hub" "$ctx")
+# Solo se arma si NO hay args: con `hub.sh <accion>` no hay que abrir rofi.
+ACTION=""
+if [[ $# -eq 0 ]]; then
+    ctx=$(build_context_msg)
+    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🎲 Redescubrir\n🍅 Enfocar\n🛑 Parar Focus\n⏱️ Time\n🧠 Flow\n🎁 Reward\n📊 Stats\n🎵 Música\n📥 Organizar\n🔄 Sync\n📋 Weekly Review\n↩️ Undo\n🛑 Pánico\n⚙️ Config" | rofi_menu "Hub" "$ctx")
+fi
 
 # --- DISPATCH DE ACCIONES (menú rofi o directo: hub.sh <accion>) ---
 run_action() {
@@ -304,8 +310,6 @@ run_action() {
         redescubrir) a="🎲 Redescubrir" ;;
         organizar) a="📥 Organizar" ;;
         sync) a="🔄 Sync" ;;
-        jira) a="🔁 Jira Sync" ;;
-        outlook) a="📅 Outlook Focus" ;;
         weekly) a="📋 Weekly Review" ;;
         undo) a="↩️ Undo" ;;
         panico) a="🛑 Pánico" ;;
@@ -313,7 +317,7 @@ run_action() {
         doctor) a="🏥 Doctor" ;;
         help|--help|-h)
             echo "Uso: hub.sh [accion]"
-            echo "Acciones: capturar buscar tareas journal ayer enfocar parar time flow reward stats musica redescubrir organizar sync jira outlook weekly undo panico config doctor"
+            echo "Acciones: capturar buscar tareas journal ayer enfocar parar time flow reward stats musica redescubrir organizar sync weekly undo panico config doctor"
             echo "Sin args: menú rofi completo."
             return 0
             ;;
@@ -364,12 +368,6 @@ run_action() {
         ;;
     *"Sync"*)
         _open_win "sync" "bash '$SCRIPTS_DIR/sync.sh'"
-        ;;
-    *"Jira Sync"*)
-        _open_win "jira" "bash '$SCRIPTS_DIR/jira-sync.sh sync'"
-        ;;
-    *"Outlook Focus"*)
-        _open_win "outlook" "bash '$SCRIPTS_DIR/outlook-focus.sh sync'"
         ;;
     *"Weekly Review"*)
         _open_win "weekly" "bash '$SCRIPTS_DIR/weekly-review.sh open'"

@@ -1,0 +1,16 @@
+{
+  "JIRA": ["JIRA", "jira.atlassian", "jira.", "browse/"],
+  "GITHUB": ["github.com", "github.", "pull request", "pull-request"],
+  "GITLAB": ["gitlab.com", "gitlab.", "merge request"],
+  "SLACK": ["slack.com", "slack.", "Slack"],
+  "TEAMS": ["teams.microsoft", "teams.", "Teams"],
+  "OUTLOOK": ["outlook.", "mail.google", "gmail.", "correo"],
+  "CONFLUENCE": ["confluence", "wiki."],
+  "DOCS": ["docs.google", "notion.so", "notion.", "office.com"],
+  "TERMINAL": ["Alacritty", "kitty", "tmux", "ssh ", "vim ", "nvim ", "code "],
+  "DOCKER": ["docker", "container", "k8s", "kubernetes", "kubectl"],
+  "AWS": ["aws.amazon", "console.aws", "cloudformation"],
+  "AZURE": ["portal.azure", "dev.azure", "azure.com"],
+  "MEET": ["meet.google", "zoom.us", "teams.microsoft.com/meet"],
+  "BROWSER": ["firefox", "chrome", "brave", "edge", "chromium"]
+}

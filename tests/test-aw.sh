@@ -5,7 +5,7 @@ H="$TDO_HUB"
 fail=0
 PORT=18923
 
-cat > "$H/.env" <<EOF
+cat > "$H/.env" <<EOF2
 HUB_ROOT="$H"
 NOTES_DIR="$TDO_TMP/vault"
 SESSION="tdo-test-session"
@@ -13,14 +13,27 @@ AW_SERVER_URL="http://127.0.0.1:9"
 AW_DEFAULT_SERVER="http://127.0.0.1:9"
 AW_FALLBACK_URL="http://127.0.0.1:9"
 AW_FALLBACK_SERVER="http://127.0.0.1:$PORT"
-EOF
-
-# NOTE: heredoc sin comillas expande a propósito (H, TDO_TMP del test).
+EOF2
 
 # Fake AW: cualquier path devuelve 200
 python3 -m http.server "$PORT" --bind 127.0.0.1 >/dev/null 2>&1 &
 FAKE_PID=$!
-sleep 1
+
+# Esperar a que el puerto escuche de verdad (evita race)
+ready=0
+for _ in $(seq 1 40); do
+    if curl -sL --connect-timeout 1 -o /dev/null "http://127.0.0.1:$PORT/" 2>/dev/null; then
+        ready=1
+        break
+    fi
+    sleep 0.25
+done
+if [[ "$ready" != "1" ]]; then
+    echo "  ✗ fake AW no levantó en :$PORT"
+    kill "$FAKE_PID" 2>/dev/null
+    echo "RESULT fail=1"
+    exit 1
+fi
 
 got=$(bash -c "source '$H/core.sh' >/dev/null 2>&1; resolve_aw_api 2>/dev/null")
 kill "$FAKE_PID" 2>/dev/null

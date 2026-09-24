@@ -43,10 +43,10 @@ export LOG_FILE="${LOG_FILE:-$LOG_DIR/$(date +%Y-%m-%d).log}"
 # Genéricos a propósito: TU layout vive en .env (ver .env.example).
 # Aquí solo defaults planos para que funcione sin .env.
 export NOTES_DIR="${NOTES_DIR:-$HOME/notes}"
-export PROJECTS_DIR="${PROJECTS_DIR:-$NOTES_DIR/01_projects}"
-export TODOS_DIR="${TODOS_DIR:-$NOTES_DIR/01_projects/General/todos}"
+export PROJECTS_DIR="${PROJECTS_DIR:-$NOTES_DIR/projects}"
+export TODOS_DIR="${TODOS_DIR:-$PROJECTS_DIR/todos}"
 export TODO_ACTIVO="${TODO_ACTIVO:-$TODOS_DIR/todo_ACTIVO.md}"
-export JOURNAL_DIR="${JOURNAL_DIR:-$NOTES_DIR/02_areas/personal/journal}"
+export JOURNAL_DIR="${JOURNAL_DIR:-$NOTES_DIR/journal}"
 export TEMPLATES_DIR="${TEMPLATES_DIR:-$NOTES_DIR/templates}"
 export INBOX_DIR="${INBOX_DIR:-$NOTES_DIR/00_inbox}"
 export WORKLOG_DIR="${WORKLOG_DIR:-$NOTES_DIR/worklog}"
@@ -56,7 +56,6 @@ export ARCHIVE_DIR="${ARCHIVE_DIR:-$NOTES_DIR/04_archivo}"
 export FOCUS_SCRIPT="${FOCUS_SCRIPT:-$SCRIPTS_DIR/focus_mode.sh}"
 export PANIC_SCRIPT="${PANIC_SCRIPT:-$SCRIPTS_DIR/panic_button.sh}"
 export TRIAGE_SCRIPT="${TRIAGE_SCRIPT:-$SCRIPTS_DIR/triage-local.sh}"
-export BACKUP_SCRIPT="${BACKUP_SCRIPT:-$SCRIPTS_DIR/backup.sh}"
 export SYNC_SCRIPT="${SYNC_SCRIPT:-$SCRIPTS_DIR/sync.sh}"
 export STREAK_SCRIPT="${STREAK_SCRIPT:-$SCRIPTS_DIR/streak-tracker.sh}"
 
@@ -83,6 +82,10 @@ export AW_BUCKET_OTRO="${AW_BUCKET_OTRO:-aw-watcher-window_$(hostname)}"
 
 # =========== APLICACIONES ===========
 export EDITOR="${EDITOR:-nvim}"
+
+# =========== STT (voz → texto) ===========
+# Webhook STT (STT_URL). Vacío = intentar whisper local.
+export STT_URL="${STT_URL:-}"
 
 # =========== ROFI TEMA ===========
 export ROFI_THEME="${ROFI_THEME:-$HUB_ROOT/themes/hub.rasi}"

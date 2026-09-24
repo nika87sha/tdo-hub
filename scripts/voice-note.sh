@@ -3,8 +3,9 @@
 # 🎙️ VOICE NOTE - Graba 5s, transcribe y guarda en brain dump
 # Uso directo (SUPER+Alt+M) o desde hub.sh
 # Grabación: pw-record (PipeWire) → parec → arecord.
-# STT: whisper (tiny, rápido) si funciona; si no, guarda el
-# audio y deja la nota con su ruta para transcribir después.
+# STT: webhook HTTP (STT_URL) si está definido;
+# si no, whisper local (tiny, rápido). Si ambos fallan,
+# guarda el audio y deja la nota con su ruta.
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
@@ -27,8 +28,22 @@ pick_recorder() {
 
 transcribe_file() {
     local wav="$1"
+
+    # 1) Webhook STT si STT_URL está definido
+    if [[ -n "${STT_URL:-}" ]] && command -v curl &>/dev/null; then
+        local resp
+        resp=$(timeout 60 curl -sS -F "file=@$wav" "$STT_URL" 2>/dev/null) || resp=""
+        if [[ -n "$resp" ]]; then
+            # {"text":"..."} → extraer text
+            local texto
+            texto=$(printf '%s' "$resp" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("text",""))' 2>/dev/null) || texto=""
+            [[ -n "$texto" ]] && { printf '%s\n' "$texto"; return 0; }
+        fi
+        # webhook no respondió texto válido → fallback abajo
+    fi
+
+    # 2) whisper local como fallback
     command -v whisper &>/dev/null || return 1
-    # tiny = el más rápido; timeout por si el motor cuelga
     timeout 120 whisper "$wav" --model tiny --language Spanish \
         --output_format txt --output_dir "$(dirname "$wav")" \
         --fp16 False >/dev/null 2>&1 || return 1

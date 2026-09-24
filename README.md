@@ -16,6 +16,7 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
   - [Música](#música)
   - ["¿Qué estaba haciendo ayer?"](#-qué-estaba-haciendo-ayer-superalt-y-)
   - [Brain dump y notas de voz](#brain-dump-y-notas-de-voz-superaltt-b-superaltt-t-superalt-m-)
+    - [Requisitos de transcripción de voz (STT)](#requisitos-de-transcripción-de-voz-stt)
   - [Flow State Detector](#flow-state-detector-superaltd-)
   - [Sistema de Recompensas](#sistema-de-recompensas)
   - [Integración Waybar (Pomodoro)](#integración-waybar-pomodoro)
@@ -86,7 +87,6 @@ tdo-hub/
 │   ├── pomodoro-daemon.sh  # Daemon pomodoro + estado para waybar
 │   ├── pomodoro-waybar.sh  # Módulo custom/pomodoro de waybar
 │   ├── mpd_auto_update.sh  # Auto-update de base MPD
-│   └── regenerate_playlists.sh  # Regenera playlists de MPD
 ├── templates/              # Templates por defecto (entry.md, note.md)
 ├── phrases.txt             # Frases motivacionales
 ├── bloqueo_distraccion.txt # Dominios bloqueados en focus
@@ -119,6 +119,9 @@ INBOX_DIR="$NOTES_DIR/00_inbox"
 
 # Tmux
 SESSION="work"
+
+# STT — voz → texto (opcional, ver sección "Requisitos de transcripción de voz")
+#STT_URL="http://192.168.1.XXX:5678/webhook/voice-note"
 
 # ActivityWatch (opcional)
 # Orden de conexión: AW_SERVER_URL → AW_FALLBACK_URL → http://localhost:5600
@@ -244,8 +247,34 @@ Muestra un resumen rápido para retomar el hilo:
 - **B**: rofi de una línea → se añade `- HH:MM idea` al `brain_dump/dump_HOY.md`.
   `daily-routine` las cuenta como "ideas sin triar" y `triage-local` las clasifica.
 - **T**: `triage-local.sh --brain` — clasifica solo el brain_dump.
-- **M**: graba 5s con `pw-record` (16kHz mono) y transcribe con `whisper --model tiny`;
-  si no hay STT, guarda el wav en `00_inbox/voice/` y deja la nota con su ruta.
+- **M**: graba 5s con `pw-record` (16kHz mono) y transcribe vía `STT_URL`
+  (webhook HTTP configurable). Si `STT_URL` no está o falla, intenta `whisper`
+  local; si todo falla, guarda el wav en `00_inbox/voice/` y deja la nota
+  con su ruta para transcribir después.
+
+#### Requisitos de transcripción de voz (STT)
+
+Para que **SUPER+Alt+M** devuelva texto (y no solo el wav), necesitás una de estas opciones, configurada en `.env`:
+
+```bash
+# Opción A — webhook de orquestación (p. ej. orquestador-HTTP u otro servicio HTTP)
+STT_URL="http://<TU_SERVIDOR>:<PUERTO>/webhook/voice-note"
+
+# Opción B — solo local: tener `whisper` (openai-whisper) en PATH.
+# No hace falta STT_URL; el script cae en fallback automático.
+```
+
+**Si usás la opción A, el servicio remoto debe estar levantado:**
+
+| Componente | Qué hace |
+|---|---|
+| **Orquestador** (p. ej. orquestador-HTTP) | Recibe el wav en `POST /webhook/voice-note` y lo reenvía al STT |
+| **STT** (p. ej. servicio-STT-compatible/whisper) | Transcribe el audio y devuelve `{"text":"..."}` |
+| **Modelo** | Cualquier modelo whisper compatible con tu servicio STT |
+
+Flujo: `voice-note.sh` → `curl -F file=@wav $STT_URL` → orquestador → STT → `{"text":"..."}` → brain dump.
+
+Sin `STT_URL` y sin `whisper` local, la nota se guarda igual con la ruta del wav (sin transcribir).
 
 > `ALT+B` estaba ocupado por el WaybarLayout del sistema: `UserKeybinds.conf`
 > lo libera con `unbind` antes de asignarlo al brain dump.

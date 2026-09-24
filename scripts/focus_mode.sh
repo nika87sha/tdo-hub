@@ -87,15 +87,11 @@ activar_focus() {
 # Visual Hyprland: lo que antes hacía ~/.config/hypr/UserScripts/FocusMode.sh
 focus_visual_on() {
     command -v hyprctl &>/dev/null || return 0
-    hyprctl --batch "\
-        keyword decoration:drop_shadow 0;\
-        keyword decoration:blur:passes 0;\
-        keyword general:gaps_in 0;\
-        keyword general:gaps_out 0;\
-        keyword decoration:rounding 0;\
-        keyword decoration:active_opacity 0.95;\
-        keyword decoration:inactive_opacity 0.3;\
-        keyword misc:disable_autoreload 1" 2>/dev/null
+    hyprctl eval 'hl.config({
+        decoration = { shadow = { enabled = false }, blur = { passes = 0 }, rounding = 0, active_opacity = 0.95, inactive_opacity = 0.3 },
+        general = { gaps_in = 0, gaps_out = 0 },
+        misc = { disable_autoreload = true }
+    })' 2>/dev/null
     killall waybar 2>/dev/null
     swaync-client --mute 2>/dev/null
     notify-send -e -u critical "🧘 Focus Mode ON" "Distracciones silenciadas + red bloqueada" 2>/dev/null
@@ -103,15 +99,11 @@ focus_visual_on() {
 
 focus_visual_off() {
     command -v hyprctl &>/dev/null || return 0
-    hyprctl --batch "\
-        keyword decoration:drop_shadow 1;\
-        keyword decoration:blur:passes 2;\
-        keyword general:gaps_in 5;\
-        keyword general:gaps_out 10;\
-        keyword decoration:rounding 10;\
-        keyword decoration:active_opacity 1.0;\
-        keyword decoration:inactive_opacity 0.9;\
-        keyword misc:disable_autoreload 0" 2>/dev/null
+    hyprctl eval 'hl.config({
+        decoration = { shadow = { enabled = true }, blur = { passes = 2 }, rounding = 10, active_opacity = 1.0, inactive_opacity = 0.9 },
+        general = { gaps_in = 5, gaps_out = 10 },
+        misc = { disable_autoreload = false }
+    })' 2>/dev/null
     waybar & disown 2>/dev/null
     swaync-client --unmute 2>/dev/null
     pkill -f pomodoro-waybar 2>/dev/null

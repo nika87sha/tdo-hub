@@ -7,7 +7,8 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HUB_ROOT="$(dirname "$SCRIPT_DIR")"
-source "$HUB_ROOT/config.sh"
+# core.sh (no solo config.sh): trae rofi_menu y el resto de ops
+source "$HUB_ROOT/core.sh"
 
 # Función mpc que usa socket si existe, sino TCP
 mpc_cmd() {

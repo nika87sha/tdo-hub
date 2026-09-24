@@ -44,7 +44,7 @@ atomic_write_tasks() {
 # Backup /etc/hosts
 backup_hosts_file() {
     local backup_file="$1"
-    sudo /usr/bin/cp /etc/hosts "$backup_file" 2>/dev/null || {
+    sudo -n /usr/bin/cp /etc/hosts "$backup_file" 2>/dev/null || {
         log_err "PRIVOPS" "Failed to backup /etc/hosts (sudoers missing?)"
         return 1
     }
@@ -53,7 +53,7 @@ backup_hosts_file() {
 # Restaurar /etc/hosts desde backup
 restore_hosts_file() {
     local backup_file="$1"
-    sudo /usr/bin/cp "$backup_file" /etc/hosts 2>/dev/null || {
+    sudo -n /usr/bin/cp "$backup_file" /etc/hosts 2>/dev/null || {
         log_err "PRIVOPS" "Failed to restore /etc/hosts (sudoers missing?)"
         return 1
     }
@@ -62,7 +62,7 @@ restore_hosts_file() {
 # Añadir líneas a /etc/hosts (para bloqueo)
 append_to_hosts() {
     local content="$1"
-    printf '%s\n' "$content" | sudo /usr/bin/tee -a /etc/hosts >/dev/null 2>&1 || {
+    printf '%s\n' "$content" | sudo -n /usr/bin/tee -a /etc/hosts >/dev/null 2>&1 || {
         log_err "PRIVOPS" "Failed to append to /etc/hosts (sudoers missing?)"
         return 1
     }
@@ -70,7 +70,7 @@ append_to_hosts() {
 
 # Reiniciar NetworkManager
 restart_networkmanager() {
-    sudo /usr/bin/systemctl restart NetworkManager 2>/dev/null || {
+    sudo -n /usr/bin/systemctl restart NetworkManager 2>/dev/null || {
         log_err "PRIVOPS" "Failed to restart NetworkManager (sudoers missing?)"
         return 1
     }
@@ -78,16 +78,23 @@ restart_networkmanager() {
 
 # Limpiar cache DNS
 flush_dns_cache() {
-    sudo /usr/bin/resolvectl flush-caches 2>/dev/null || {
+    sudo -n /usr/bin/resolvectl flush-caches 2>/dev/null || {
         log_warn "PRIVOPS" "Failed to flush DNS cache (non-critical)"
         return 1
     }
 }
 
-# Verificar que sudoers está configurado
+# Verificar que sudoers está configurado (no destructivo, sin reiniciar NM)
 check_sudoers_setup() {
-    sudo -n /usr/bin/cp /etc/hosts /dev/null 2>/dev/null && \
-    sudo -n /usr/bin/systemctl restart NetworkManager 2>/dev/null
+    local bak="$HUB_ROOT/hosts.bak"
+    # 1. backup + restore con la ruta real que usa focus_mode
+    sudo -n /usr/bin/cp /etc/hosts "$bak" 2>/dev/null || return 1
+    echo "# tdo-sudoers-check" | sudo -n /usr/bin/tee -a /etc/hosts >/dev/null 2>&1 || return 1
+    sudo -n /usr/bin/cp "$bak" /etc/hosts 2>/dev/null || return 1
+    # 2. reglas NM y DNS existen (sin ejecutarlas)
+    sudo -n -l 2>/dev/null | grep -q "systemctl restart NetworkManager" || return 1
+    sudo -n -l 2>/dev/null | grep -q "resolvectl flush-caches" || return 1
+    return 0
 }
 
 # =========== LOGGER ===========
@@ -264,7 +271,7 @@ tmux_run_script() {
 # Enfocar terminal (Hyprland)
 tmux_focus_terminal() {
     command -v hyprctl &>/dev/null && [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && \
-        hyprctl dispatch focuswindow "class:${_TMUX_TERMINAL_CLASS}" 2>/dev/null
+        hyprctl dispatch "hl.dsp.focus({ window = \"class:${_TMUX_TERMINAL_CLASS}\" })" 2>/dev/null
 }
 
 # Enviar comando a ventana existente
