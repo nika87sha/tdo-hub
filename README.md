@@ -13,6 +13,7 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
   - [Atajos de teclado (esenciales 8)](#atajos-de-teclado-esenciales-8)
   - [Menú Hub (SUPER+N) — Menú en una sola pantalla](#menú-hub-supern---menú-en-una-sola-pantalla)
   - [Focus Mode](#focus-mode)
+  - [Música](#música)
   - ["¿Qué estaba haciendo ayer?"](#-qué-estaba-haciendo-ayer-superalt-y-)
   - [Brain dump y notas de voz](#brain-dump-y-notas-de-voz-superaltt-b-superaltt-t-superalt-m-)
     - [Requisitos de transcripción de voz (STT)](#requisitos-de-transcripción-de-voz-stt)
@@ -37,6 +38,7 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
 | 🍅 | Enfocar | Activar Focus Mode con bloqueo |
 | 🧠 | Flow | Detectar flow state actual |
 | 📊 | Stats | Estadísticas ActivityWatch |
+| 🎵 | Música | Menú de música (shuffle, folders, playlists) |
 | 📥 | Organizar | Clasificar inbox automáticamente (script local opcional) |
 | ↩️ | Undo | Deshacer última acción |
 | 🛑 | Pánico | Modo emergencia para parar todo |
@@ -58,9 +60,10 @@ tdo-hub/
 │   │   ├── buscar.sh
 │   │   ├── quick-capture-rofi.sh
 │   │   └── voice-note.sh
-│   ├── focus/              # Focus mode + pomodoro
+│   ├── focus/              # Focus mode + pomodoro + música
 │   │   ├── flow-detect.sh
 │   │   ├── focus_mode.sh
+│   │   ├── focus_music.sh
 │   │   ├── panic_button.sh
 │   │   ├── pomodoro-daemon.sh
 │   │   └── pomodoro-waybar.sh
@@ -206,6 +209,7 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 - **Journal** → `journal.sh` (diario del día)
 - **Ayer** → `yesterday.sh` (resumen de actividad del día anterior)
 - **Enfocar** → `focus_mode.sh` (bloqueo de distracciones y pomodoro)
+- **Música** → `focus_music.sh` (menú de música MPD)
 - **Deshacer** → `undo.sh` (deshacer última acción)
 - **Flow detector** → `flow-detect.sh` (detecta estado de flow)
 
@@ -213,9 +217,17 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 
 1. Marca una tarea con 🎯 en tu archivo de tareas activas (desde `tareas.sh` con `Alt+d`)
 2. Activa focus: `SUPER+Alt+F` o Hub → 🍅 Enfocar
-3. Se bloquean distracciones y arranca pomodoro
-4. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea en timew
-5. Si no hay 🎯: focus arranca genérico y al parar **no pregunta proyecto**
+3. Selecciona música (shuffle, carpeta específica, o sin música)
+4. Se bloquean distracciones y arranca pomodoro
+5. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea en timew
+6. Si no hay 🎯: focus arranca genérico y al parar **no pregunta proyecto**
+
+### Música
+
+- **Desde Hub**: 🍅 Enfocar / 🎵 Música (menú único)
+- **En Focus**: se activa automáticamente al entrar
+- **ncmpcpp**: para control manual mientras trabajas
+- **Playlists**: guardadas en `~/Musica/playlists/`
 
 ### "¿Qué estaba haciendo ayer?" (`SUPER+Alt+Y`)
 

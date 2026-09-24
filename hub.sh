@@ -283,7 +283,7 @@ _open_win() {
 ACTION=""
 if [[ $# -eq 0 ]]; then
     ctx=$(build_context_msg)
-    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🍅 Enfocar\n🛑 Parar Focus\n🧠 Flow\n📊 Stats\n📥 Organizar\n↩️ Undo\n🛑 Pánico" | rofi_menu "Hub" "$ctx")
+    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🍅 Enfocar\n🛑 Parar Focus\n🧠 Flow\n📊 Stats\n🎵 Música\n📥 Organizar\n↩️ Undo\n🛑 Pánico" | rofi_menu "Hub" "$ctx")
 fi
 
 # --- DISPATCH DE ACCIONES (menú rofi o directo: hub.sh <accion>) ---
@@ -299,13 +299,14 @@ run_action() {
         parar) a="🛑 Parar Focus" ;;
         flow) a="🧠 Flow" ;;
         stats) a="📊 Stats" ;;
+        musica) a="🎵 Música" ;;
         organizar) a="📥 Organizar" ;;
         undo) a="↩️ Undo" ;;
         panico) a="🛑 Pánico" ;;
         doctor) a="🏥 Doctor" ;;
         help|--help|-h)
             echo "Uso: hub.sh [accion]"
-            echo "Acciones: capturar buscar tareas journal ayer enfocar parar flow stats organizar undo panico doctor"
+            echo "Acciones: capturar buscar tareas journal ayer enfocar parar flow stats musica organizar undo panico doctor"
             echo "Sin args: menú rofi completo."
             return 0
             ;;
@@ -337,6 +338,9 @@ run_action() {
         ;;
     *"Stats"*)
         _open_win "stats" "bash '$SCRIPTS_DIR/stats/aw-stats.sh'"
+        ;;
+    *"Música"*)
+        bash "$SCRIPTS_DIR/focus/focus_music.sh"
         ;;
     *"Organizar"*)
         if [[ -f "$SCRIPTS_DIR/triage-local.sh" ]]; then

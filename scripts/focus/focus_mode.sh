@@ -22,7 +22,18 @@ activar_focus() {
     # 0. Visual Hyprland (solo si hay Hyprland)
     focus_visual_on
 
-    # 1. Bloqueo de red (usa privileged ops con sudoers específico)
+    # 1. Música (antes de bloquear red, para que rofi funcione)
+    local MUSIC_CHOICE=$(echo -e "🔀 Shuffle todo\n🎵 Miss Monique\n🎵 Electronica\n📂 Elegir carpeta...\n🔇 Sin música" | rofi_menu "🎵 ¿Música?")
+    case "$MUSIC_CHOICE" in
+        *"Shuffle todo")    bash "$SCRIPTS_DIR/focus/focus_music.sh" play "/" "Todo" ;;
+        *"Miss Monique")    bash "$SCRIPTS_DIR/focus/focus_music.sh" play "Electronica/Miss Monique" "Miss Monique" ;;
+        *"Electronica")     bash "$SCRIPTS_DIR/focus/focus_music.sh" play "Electronica" "Electronica" ;;
+        *"Elegir carpeta")  bash "$SCRIPTS_DIR/focus/focus_music.sh" & ;;
+        *"Sin música"*)     ;;
+        *)                  ;;  # Canceló rofi
+    esac
+
+    # 2. Bloqueo de red (usa privileged ops con sudoers específico)
     backup_hosts_file "$BACKUP_FILE" || exit 1
     append_to_hosts "$(cat "$BLOCK_FILE"; echo -e "\n### FOCUS MODE ACTIVADO ###")" || exit 1
     restart_networkmanager || exit 1
@@ -40,7 +51,7 @@ activar_focus() {
     tmux kill-window -t "$SESSION:Focus" 2>/dev/null
     tmux new-window -t "$SESSION" -n "Focus"
 
-    # 5. Crear la estructura PRIMERO
+    # 4. Crear la estructura PRIMERO
     # Dividimos la ventana Focus: Panel 0 (izq) y Panel 1 (der)
     tmux split-window -h -p 35 -t "$SESSION:Focus.0"
 
@@ -51,7 +62,7 @@ activar_focus() {
     tmux split-window -v -p 20 -t "$SESSION:Focus.0"
     sleep 0.2
 
-    # 6. Inyectar comandos en los paneles vacíos
+    # 5. Inyectar comandos en los paneles vacíos
     # Panel Izquierdo inferior (Pomodoro status)
     local pomo_status="echo -e '\n🎯 FOCUS MODE\n🍅 Esperando inicio de pomodoro...'"
     tmux send-keys -t "$SESSION:Focus.2" C-u "$pomo_status" C-m
@@ -65,7 +76,7 @@ activar_focus() {
     # Asegurar foco en nvim
     tmux select-pane -t "$SESSION:Focus.0"
     
-    # 7. Auto-iniciar pomodoro si no está activo
+    # 6. Auto-iniciar pomodoro si no está activo
     if ! pgrep -f "pomodoro-daemon.sh" > /dev/null 2>&1; then
         bash "$SCRIPTS_DIR/focus/pomodoro-daemon.sh" run &
     fi
@@ -101,6 +112,8 @@ focus_visual_off() {
 desactivar_focus() {
     if [ -f "$BACKUP_FILE" ]; then
         focus_visual_off
+        # Parar música
+        bash "$SCRIPTS_DIR/focus/focus_music.sh" stop 2>/dev/null
 
         restore_hosts_file "$BACKUP_FILE" || exit 1
         restart_networkmanager || exit 1
