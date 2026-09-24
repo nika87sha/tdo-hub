@@ -2,8 +2,7 @@
 # ==========================================================
 # 🧠 BRAIN DUMP - Captura en 3 segundos (rofi → .md del día)
 # Uso directo (SUPER+Alt+B) o desde hub.sh
-# Formato compatible con daily-routine (cuenta "^- ") y
-# triage-local (lee 00_inbox/brain_dump/*.md).
+# Formato compatible con daily-routine (cuenta "^- ").
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"

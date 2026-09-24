@@ -78,7 +78,6 @@ tdo-hub/
 │   ├── aw-stats.sh         # Estadísticas ActivityWatch
 │   ├── daily-routine.sh    # Resumen diario
 │   ├── streak-tracker.sh   # Tracker de rachas
-│   ├── triage-local.sh      # Clasificador de inbox
 │   ├── panic_button.sh     # Botón de pánico
 │   ├── note-of-the-day.py  # Nota aleatoria del día
 │   ├── yesterday.sh        # ¿Qué estaba haciendo ayer?
@@ -245,8 +244,8 @@ Muestra un resumen rápido para retomar el hilo:
 ### Brain dump y notas de voz (`SUPER+Alt+B` / `SUPER+Alt+T` / `SUPER+Alt+M`)
 
 - **B**: rofi de una línea → se añade `- HH:MM idea` al `brain_dump/dump_HOY.md`.
-  `daily-routine` las cuenta como "ideas sin triar" y `triage-local` las clasifica.
-- **T**: `triage-local.sh --brain` — clasifica solo el brain_dump.
+  `daily-routine` las cuenta como "ideas sin triar".
+- **T**: script local de triaje del brain_dump (opcional, no va en el repo).
 - **M**: graba 5s con `pw-record` (16kHz mono) y transcribe vía `STT_URL`
   (webhook HTTP configurable). Si `STT_URL` no está o falla, intenta `whisper`
   local; si todo falla, guarda el wav en `00_inbox/voice/` y deja la nota

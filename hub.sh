@@ -364,7 +364,11 @@ run_action() {
         [[ -n "$nota" && -f "$nota" ]] && _open_win "note" "nvim '$nota'"
         ;;
     *"Organizar"*)
-        _open_win "triage" "bash '$SCRIPTS_DIR/triage-local.sh' && echo '✅ Inbox clasificado' || echo '❌ Error'"
+        if [[ -f "$SCRIPTS_DIR/triage-local.sh" ]]; then
+            _open_win "triage" "bash '$SCRIPTS_DIR/triage-local.sh' && echo '✅ Inbox clasificado' || echo '❌ Error'"
+        else
+            notify-send "📥 Organizar" "triage-local.sh no está instalado (script local opcional)"
+        fi
         ;;
     *"Sync"*)
         _open_win "sync" "bash '$SCRIPTS_DIR/sync.sh'"

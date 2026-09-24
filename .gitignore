@@ -8,3 +8,6 @@ trash.md
 *.pyc
 __pycache__/
 .DS_Store
+
+# script local opcional (datos personales — no subir)
+scripts/triage-local.sh
