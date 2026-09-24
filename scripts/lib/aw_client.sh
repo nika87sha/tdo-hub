@@ -5,7 +5,7 @@
 # ==========================================================
 
 # BASH_SOURCE: funciona al sourcearse desde cualquier script ($0 sería el padre)
-source "$(dirname "${BASH_SOURCE[0]}")/../core.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../../core.sh"
 
 # =========== CONFIGURACIÓN ===========
 AW_API_BASE="${AW_API_BASE:-}"

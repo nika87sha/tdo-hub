@@ -5,7 +5,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 [[ ! -f "$TODO_TRASH" ]] && notify "Undo" "No hay acciones" && exit 0
 SEL=$(tail -10 "$TODO_TRASH" 2>/dev/null | rofi_menu "↩️" "Últimas acciones")

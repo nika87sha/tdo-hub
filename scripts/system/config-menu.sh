@@ -5,7 +5,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 SUB2=$(echo -e "📝 Editar\n🔗 Rutas\n🧹 Caché" | rofi_menu "Config:")
 case "$SUB2" in

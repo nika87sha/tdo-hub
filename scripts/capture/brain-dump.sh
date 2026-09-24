@@ -6,7 +6,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 brain_file_today() {
     local today=$(date +%Y-%m-%d)

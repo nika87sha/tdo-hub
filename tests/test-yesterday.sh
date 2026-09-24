@@ -49,7 +49,7 @@ AW_FALLBACK_SERVER="http://127.0.0.1:9"
 EOF
 sed -i "s|__H__|$H|; s|__V__|$V|" "$H/.env"
 
-out=$(bash "$H/scripts/yesterday.sh" 2>/dev/null)
+out=$(bash "$H/scripts/notes/yesterday.sh" 2>/dev/null)
 code=$?
 check "exit 0" test "$code" -eq 0
 check_out "muestra journal de ayer" "AYER-MARKER-123" "$out"

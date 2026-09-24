@@ -4,7 +4,7 @@
 # Rofi + fechas visuales = 0 fricción TDAH
 # ==========================================================
 
-source "$(dirname "$0")/../core.sh"
+source "$(dirname "$0")/../../core.sh"
 
 # Colores
 R='\033[0;31m'

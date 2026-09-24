@@ -24,7 +24,7 @@ fi
 
 source "$DIR_ACTUAL/core.sh"
 # aw_client define aw_is_running/_aw_resolve_api (doctor y stats)
-source "$DIR_ACTUAL/scripts/aw_client.sh"
+source "$DIR_ACTUAL/scripts/lib/aw_client.sh"
 
 # --- DETECCIÓN DE SESIÓN TMUX ---
 # Si ya estamos dentro de tmux, usar la sesión actual (vía display-message,
@@ -74,7 +74,7 @@ run_daily_routine_once() {
     local TODAY=$(date +%Y-%m-%d)
     local LAST_RUN=$(cat "$LAST_RUN_FILE" 2>/dev/null)
     if [[ "$LAST_RUN" != "$TODAY" ]]; then
-        bash "$SCRIPTS_DIR/daily-routine.sh"
+        bash "$SCRIPTS_DIR/notes/daily-routine.sh"
         echo "$TODAY" > "$LAST_RUN_FILE"
     fi
 }
@@ -86,7 +86,7 @@ quick_capture() {
 
     if [[ "$accion" == *"tarea"* ]]; then
         # Script dedicado con prioridad y fecha visual
-        bash "$SCRIPTS_DIR/quick-capture-rofi.sh"
+        bash "$SCRIPTS_DIR/capture/quick-capture-rofi.sh"
         return
     fi
 
@@ -135,7 +135,7 @@ build_context_msg() {
 session_feedback() {
     local done_today=$(grep -c "\[x\] $(date +%Y-%m-%d)" "$TODO_ACTIVO" 2>/dev/null)
     [[ -z "$done_today" ]] && done_today=0
-    local streak=$(bash "$SCRIPTS_DIR/streak-tracker.sh" 2>/dev/null)
+    local streak=$(bash "$SCRIPTS_DIR/focus/streak-tracker.sh" 2>/dev/null)
     [[ -z "$streak" ]] && streak=0
     notify "TDO" "✅ $done_today hoy · 🔥 $streak días"
 }
@@ -202,7 +202,7 @@ _doctor() {
         echo -e "  ${GREEN}✓${RESET} sudoers configurado"
     else
         echo -e "  ${RED}✗${RESET} sudoers NO configurado"
-        echo -e "    ${YELLOW}Fix:${RESET} sudo visudo -f /etc/sudoers.d/tdo-hub < $HUB_ROOT/scripts/sudoers-tdo"
+        echo -e "    ${YELLOW}Fix:${RESET} sudo visudo -f /etc/sudoers.d/tdo-hub < $HUB_ROOT/scripts/system/sudoers-tdo"
         ((issues++))
     fi
     
@@ -324,8 +324,8 @@ run_action() {
     esac
     case "$a" in
     "📝 Capturar") quick_capture ;;
-    "🔍 Buscar") bash "$SCRIPTS_DIR/buscar.sh" ;;
-    "📋 Tareas") bash "$SCRIPTS_DIR/tareas.sh" ;;
+    "🔍 Buscar") bash "$SCRIPTS_DIR/capture/buscar.sh" ;;
+    "📋 Tareas") bash "$SCRIPTS_DIR/notes/tareas.sh" ;;
     *"Journal"*)
         FILE_JOURNAL="$JOURNAL_DIR/$(date +%Y)/$(date +%m)/$(date +%Y-%m-%d).md"
         if [[ ! -f "$FILE_JOURNAL" ]]; then
@@ -334,7 +334,7 @@ run_action() {
         _open_win "journal" "nvim '+normal Gko' '$FILE_JOURNAL'"
         ;;
     *"Ayer"*)
-        _open_win "ayer" "bash '$SCRIPTS_DIR/yesterday.sh'"
+        _open_win "ayer" "bash '$SCRIPTS_DIR/notes/yesterday.sh'"
         ;;
     *"Enfocar"*)
         start_focus
@@ -345,22 +345,22 @@ run_action() {
         notify "🛑 Focus parado"
         ;;
     *"Time"*)
-        bash "$SCRIPTS_DIR/time.sh"
+        bash "$SCRIPTS_DIR/notes/time.sh"
         ;;
     *"Flow"*)
-        bash "$SCRIPTS_DIR/flow-detect.sh" 15
+        bash "$SCRIPTS_DIR/focus/flow-detect.sh" 15
         ;;
     *"Reward"*)
-        bash "$SCRIPTS_DIR/reward.sh" 3
+        bash "$SCRIPTS_DIR/focus/reward.sh" 3
         ;;
     *"Stats"*)
-        _open_win "stats" "bash '$SCRIPTS_DIR/aw-stats.sh'"
+        _open_win "stats" "bash '$SCRIPTS_DIR/stats/aw-stats.sh'"
         ;;
     *"Música"*)
-        bash "$SCRIPTS_DIR/focus_music.sh"
+        bash "$SCRIPTS_DIR/focus/focus_music.sh"
         ;;
     *"Redescubrir"*)
-        nota=$(python3 "$SCRIPTS_DIR/note-of-the-day.py" 2>/dev/null)
+        nota=$(python3 "$SCRIPTS_DIR/system/note-of-the-day.py" 2>/dev/null)
         [[ -n "$nota" && -f "$nota" ]] && _open_win "note" "nvim '$nota'"
         ;;
     *"Organizar"*)
@@ -371,19 +371,19 @@ run_action() {
         fi
         ;;
     *"Sync"*)
-        _open_win "sync" "bash '$SCRIPTS_DIR/sync.sh'"
+        _open_win "sync" "bash '$SCRIPTS_DIR/system/sync.sh'"
         ;;
     *"Weekly Review"*)
-        _open_win "weekly" "bash '$SCRIPTS_DIR/weekly-review.sh open'"
+        _open_win "weekly" "bash '$SCRIPTS_DIR/notes/weekly-review.sh open'"
         ;;
     *"Undo"*)
-        bash "$SCRIPTS_DIR/undo.sh"
+        bash "$SCRIPTS_DIR/notes/undo.sh"
         ;;
     *"Pánico"*)
         _open_win "panic" "bash '$PANIC_SCRIPT'"
         ;;
     *"Config"*)
-        bash "$SCRIPTS_DIR/config-menu.sh"
+        bash "$SCRIPTS_DIR/system/config-menu.sh"
         ;;
     *"Doctor"*)
         _doctor

@@ -6,7 +6,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 start_focus_here() {
     local task="${1:-Focus session}"

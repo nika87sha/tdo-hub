@@ -6,7 +6,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 POMODOROS_NEEDED="${1:-3}"
 TODAY=$(date +%Y-%m-%d)

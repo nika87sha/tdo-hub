@@ -45,7 +45,7 @@ EOF2
 chmod +x "$TDO_TMP/fakebin/rofi"
 echo 0 > "$TDO_TMP/rofistate"
 
-PATH="$TDO_TMP/fakebin:$PATH" bash "$H/scripts/tareas.sh" >/dev/null 2>&1
+PATH="$TDO_TMP/fakebin:$PATH" bash "$H/scripts/notes/tareas.sh" >/dev/null 2>&1
 
 grep -q "DONE-ME-111" "$H/trash.md" && ok "Done va a trash" || bad "Done va a trash"
 grep -q "^- \[x\] !! Tarea DONE-ME-111" "$V/01_projects/General/todos/todo_ACTIVO.md" && ok "todo marcado [x]" || bad "todo marcado [x]"

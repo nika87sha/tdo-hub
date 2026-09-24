@@ -3,8 +3,8 @@
 # 📅 RUTINA DIARIA
 # ==========================================================
 
-source "$(dirname "$0")/../core.sh"
-source "$(dirname "$0")/aw_client.sh"
+source "$(dirname "$0")/../../core.sh"
+source "$(dirname "$0")/../lib/aw_client.sh"
 
 BOLD='\033[1m'
 DIM='\033[2m'

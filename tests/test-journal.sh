@@ -21,7 +21,7 @@ AW_FALLBACK_SERVER="http://127.0.0.1:9"
 EOF
 
 trap 'tmux kill-session -t "$SESS" 2>/dev/null' EXIT
-bash "$H/scripts/journal.sh" >/dev/null 2>&1
+bash "$H/scripts/notes/journal.sh" >/dev/null 2>&1
 
 TD=$(date +%Y-%m-%d)
 if [[ -f "$V/journal/$(date +%Y)/$(date +%m)/$TD.md" ]] && grep -q "FIXTURE-JOURNAL-444" "$V/journal/$(date +%Y)/$(date +%m)/$TD.md"; then

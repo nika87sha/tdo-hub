@@ -9,7 +9,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 RECORD_SECS="${RECORD_SECS:-5}"
 AUDIO_DIR="${AUDIO_DIR:-$INBOX_DIR/voice}"

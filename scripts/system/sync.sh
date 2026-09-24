@@ -5,7 +5,7 @@
 # Usa pull --rebase antes de push para evitar conflictos
 # ==========================================================
 
-source "$(dirname "$0")/../core.sh"
+source "$(dirname "$0")/../../core.sh"
 
 # Si viene de un atajo (sin terminal), mostrarse en tmux
 ensure_tmux_window "sync" "$0" "$@"

@@ -6,8 +6,8 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
-source "$SCRIPT_DIR/aw_client.sh"
+source "$SCRIPT_DIR/../../core.sh"
+source "$SCRIPT_DIR/../lib/aw_client.sh"
 
 THRESHOLD="${1:-25}"  # minutos mínimo para notificar
 

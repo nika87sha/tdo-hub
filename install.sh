@@ -151,8 +151,8 @@ source "$HUB_ROOT/config.sh"
 
 # Alias para acceso rápido
 alias tdo="bash $HUB_ROOT/hub.sh"
-alias tdo-focus="bash $HUB_ROOT/scripts/focus_mode.sh"
-alias tdo-panic="bash $HUB_ROOT/scripts/panic_button.sh"
+alias tdo-focus="bash $HUB_ROOT/scripts/focus/focus_mode.sh"
+alias tdo-panic="bash $HUB_ROOT/scripts/focus/panic_button.sh"
 alias tdo-validate="bash $HUB_ROOT/validate.sh"
 EOF
             print_success "Configuración agregada a .zshrc"
@@ -221,7 +221,7 @@ setup_cron() {
     
     local cron_marker="# TDO Hub"
     local cron_entries="$cron_marker
-0 9 * * * bash $SCRIPT_DIR/scripts/daily-routine.sh --quiet --sync
+0 9 * * * bash $SCRIPT_DIR/scripts/notes/daily-routine.sh --quiet --sync
 0 21 * * * notify-send '📓 Journal' '¿Qué aprendiste hoy?' -u normal"
     
     # Verificar si ya existen los cron jobs de TDO

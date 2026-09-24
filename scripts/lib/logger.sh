@@ -5,7 +5,7 @@
 # ==========================================================
 
 # HUB_ROOT ya está disponible desde core.sh que nos carga
-[[ -z "$HUB_ROOT" ]] && HUB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+[[ -z "$HUB_ROOT" ]] && HUB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # =========== CONFIGURACIÓN ===========
 _LOG_FILE="${TD_LOG_FILE:-$HUB_ROOT/.tdo.log}"

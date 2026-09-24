@@ -5,7 +5,7 @@ source "$HUB_ROOT/config.sh"
 set -o pipefail
 
 # =========== SANITIZE ===========
-source "$HUB_ROOT/scripts/sanitize.sh"
+source "$HUB_ROOT/scripts/lib/sanitize.sh"
 
 # =========== ATOMIC FILE OPS ===========
 # Reemplazo atómico usando archivo temporal + mv (evita corrupción)
@@ -98,7 +98,7 @@ check_sudoers_setup() {
 }
 
 # =========== LOGGER ===========
-source "$HUB_ROOT/scripts/logger.sh"
+source "$HUB_ROOT/scripts/lib/logger.sh"
 
 require_command() {
     local cmd="$1" name="${2:-$1}"
@@ -196,7 +196,7 @@ _started_by_gui() {
 }
 
 # =========== ROFI HELPER ===========
-source "$HUB_ROOT/scripts/rofi.sh"
+source "$HUB_ROOT/scripts/lib/rofi.sh"
 
 # =========== TMUX MANAGER ===========
 # Gestor centralizado de ventanas/paneles tmux

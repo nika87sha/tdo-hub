@@ -139,17 +139,17 @@ Añadir a `~/.config/hypr/UserConfigs/UserKeybinds.conf`:
 ```conf
 # TDO Hub (8 atajos esenciales)
 bind = $mainMod, N, exec, $HOME/.local/bin/tdo-hub/hub.sh
-bind = $mainMod, J, exec, $HOME/.local/bin/tdo-hub/scripts/journal.sh
+bind = $mainMod, J, exec, $HOME/.local/bin/tdo-hub/scripts/notes/journal.sh
 
 # Acciones directas esenciales (cada una a su script, sin pasar por el menú)
-bind = $mainMod ALT, Y, exec, $HOME/.local/bin/tdo-hub/scripts/yesterday.sh
-bind = $mainMod ALT, D, exec, $HOME/.local/bin/tdo-hub/scripts/flow-detect.sh 25
-bind = $mainMod ALT, C, exec, $HOME/.local/bin/tdo-hub/scripts/quick-capture-rofi.sh
-bind = $mainMod ALT, U, exec, $HOME/.local/bin/tdo-hub/scripts/buscar.sh
-bind = $mainMod ALT, Z, exec, $HOME/.local/bin/tdo-hub/scripts/undo.sh
-bind = $mainMod ALT, F, exec, $HOME/.local/bin/tdo-hub/scripts/focus_mode.sh
-bind = $mainMod ALT, A, exec, $HOME/.local/bin/tdo-hub/scripts/aw-stats.sh
-bind = $mainMod ALT, M, exec, python3 $HOME/.local/bin/tdo-hub/scripts/voice-note.sh
+bind = $mainMod ALT, Y, exec, $HOME/.local/bin/tdo-hub/scripts/notes/yesterday.sh
+bind = $mainMod ALT, D, exec, $HOME/.local/bin/tdo-hub/scripts/focus/flow-detect.sh 25
+bind = $mainMod ALT, C, exec, $HOME/.local/bin/tdo-hub/scripts/capture/quick-capture-rofi.sh
+bind = $mainMod ALT, U, exec, $HOME/.local/bin/tdo-hub/scripts/capture/buscar.sh
+bind = $mainMod ALT, Z, exec, $HOME/.local/bin/tdo-hub/scripts/notes/undo.sh
+bind = $mainMod ALT, F, exec, $HOME/.local/bin/tdo-hub/scripts/focus/focus_mode.sh
+bind = $mainMod ALT, A, exec, $HOME/.local/bin/tdo-hub/scripts/stats/aw-stats.sh
+bind = $mainMod ALT, M, exec, python3 $HOME/.local/bin/tdo-hub/scripts/capture/voice-note.sh
 ```
 
 ### 3. MPD (música)
@@ -305,7 +305,7 @@ Asegúrate de que `pomodoro-daemon.sh` esté corriendo en segundo plano (puedes 
 "custom/pomodoro": {
     "format": "{}",
     "return-type": "json",
-    "exec": "~/.local/bin/tdo-hub/scripts/pomodoro-waybar.sh",
+    "exec": "~/.local/bin/tdo-hub/scripts/focus/pomodoro-waybar.sh",
     "interval": 1
 },
 ```
@@ -332,16 +332,16 @@ Añade estas líneas a tu `~/.zshrc` (o `~/.bashrc`) para atajos rápidos:
 # TDO Hub aliases
 alias tdo-hub="cd ~/.local/bin/tdo-hub"
 alias tdo-reload="source ~/.zshrc"
-alias tdo-journal="bash ~/.local/bin/tdo-hub/scripts/journal.sh"
-alias tdo-capture="bash ~/.local/bin/tdo-hub/scripts/quick-capture-rofi.sh"
-alias tdo-focus="bash ~/.local/bin/tdo-hub/scripts/focus_mode.sh"
-alias tdo-undone="bash ~/.local/bin/tdo-hub/scripts/undo.sh"
-alias tdo-aw="bash ~/.local/bin/tdo-hub/scripts/aw-stats.sh"
-alias tdo-yesterday="bash ~/.local/bin/tdo-hub/scripts/yesterday.sh"
-alias tdo-flow="bash ~/.local/bin/tdo-hub/scripts/flow-detect.sh"
+alias tdo-journal="bash ~/.local/bin/tdo-hub/scripts/notes/journal.sh"
+alias tdo-capture="bash ~/.local/bin/tdo-hub/scripts/capture/quick-capture-rofi.sh"
+alias tdo-focus="bash ~/.local/bin/tdo-hub/scripts/focus/focus_mode.sh"
+alias tdo-undone="bash ~/.local/bin/tdo-hub/scripts/notes/undo.sh"
+alias tdo-aw="bash ~/.local/bin/tdo-hub/scripts/stats/aw-stats.sh"
+alias tdo-yesterday="bash ~/.local/bin/tdo-hub/scripts/notes/yesterday.sh"
+alias tdo-flow="bash ~/.local/bin/tdo-hub/scripts/focus/flow-detect.sh"
 ```
 
-Con estos aliases puedes ejecutar acciones principales sin escribir la ruta completa, ej: `tdo-focus` en lugar de `bash ~/.local/bin/tdo-hub/scripts/focus_mode.sh`.
+Con estos aliases puedes ejecutar acciones principales sin escribir la ruta completa, ej: `tdo-focus` en lugar de `bash ~/.local/bin/tdo-hub/scripts/focus/focus_mode.sh`.
 
 ---
 

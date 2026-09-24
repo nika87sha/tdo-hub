@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 🛑 Botón de Pánico - Desactiva focus de forma forzada y sin toggle
 
-source "$(dirname "$0")/../core.sh"
+source "$(dirname "$0")/../../core.sh"
 
 # 1. Desactivar focus mode de forma explícita (NUNCA toggle)
 bash "$FOCUS_SCRIPT" stop 2>/dev/null

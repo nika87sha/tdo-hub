@@ -5,7 +5,7 @@
 # ==========================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
+source "$SCRIPT_DIR/../../core.sh"
 
 WIN="🔍"
 tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION"

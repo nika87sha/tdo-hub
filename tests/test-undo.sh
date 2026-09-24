@@ -31,7 +31,7 @@ echo "- [x] 2026-09-20 Tarea RESTORE-ME-333"
 EOF2
 chmod +x "$TDO_TMP/fakebin2/rofi"
 
-PATH="$TDO_TMP/fakebin2:$PATH" bash "$H/scripts/undo.sh" >/dev/null 2>&1
+PATH="$TDO_TMP/fakebin2:$PATH" bash "$H/scripts/notes/undo.sh" >/dev/null 2>&1
 
 if grep -q "RESTORE-ME-333" "$V/01_projects/General/todos/todo_ACTIVO.md"; then
     echo "  ✓ undo restaura"

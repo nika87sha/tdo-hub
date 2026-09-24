@@ -17,9 +17,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
-source "$SCRIPT_DIR/../core.sh"
-source "$SCRIPT_DIR/../config.sh"
-source "$SCRIPT_DIR/aw_client.sh"
+source "$SCRIPT_DIR/../../core.sh"
+source "$SCRIPT_DIR/../../config.sh"
+source "$SCRIPT_DIR/../lib/aw_client.sh"
 
 ENV_FILE="$HUB_ROOT/.env"
 [[ -f "$ENV_FILE" ]] && { set -a; source "$ENV_FILE"; set +a; }

@@ -53,12 +53,12 @@ export WORKLOG_DIR="${WORKLOG_DIR:-$NOTES_DIR/worklog}"
 export ARCHIVE_DIR="${ARCHIVE_DIR:-$NOTES_DIR/04_archivo}"
 
 # =========== SCRIPTS ===========
-export FOCUS_SCRIPT="${FOCUS_SCRIPT:-$SCRIPTS_DIR/focus_mode.sh}"
-export PANIC_SCRIPT="${PANIC_SCRIPT:-$SCRIPTS_DIR/panic_button.sh}"
+export FOCUS_SCRIPT="${FOCUS_SCRIPT:-$SCRIPTS_DIR/focus/focus_mode.sh}"
+export PANIC_SCRIPT="${PANIC_SCRIPT:-$SCRIPTS_DIR/focus/panic_button.sh}"
 # TRIAGE: script local opcional (no incluido en el repo). Ver .env TRIAGE_SCRIPT.
 export TRIAGE_SCRIPT="${TRIAGE_SCRIPT:-}"
-export SYNC_SCRIPT="${SYNC_SCRIPT:-$SCRIPTS_DIR/sync.sh}"
-export STREAK_SCRIPT="${STREAK_SCRIPT:-$SCRIPTS_DIR/streak-tracker.sh}"
+export SYNC_SCRIPT="${SYNC_SCRIPT:-$SCRIPTS_DIR/system/sync.sh}"
+export STREAK_SCRIPT="${STREAK_SCRIPT:-$SCRIPTS_DIR/focus/streak-tracker.sh}"
 
 # =========== TMUX ===========
 export SESSION="${SESSION:-work}"

@@ -3,7 +3,7 @@
 # 📓 JOURNAL - Abre journal del día en tmux + nvim
 # ==========================================================
 
-HUB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HUB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$HUB_ROOT/core.sh"
 
 JOURNAL_DIR="${JOURNAL_DIR:-$NOTES_DIR/journal}"

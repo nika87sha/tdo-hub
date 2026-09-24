@@ -57,7 +57,7 @@ case "${1:-toggle}" in
         TODAY_COUNT=$(grep "$(date '+%Y-%m-%d')" "$LOG_FILE" 2>/dev/null | wc -l)
         notify-send -u low -t 5000 "🍅 Resumen del día" "Pomodoros completados hoy: $TODAY_COUNT"
         # Sistema de recompensas
-        bash ~/.local/bin/tdo-hub/scripts/reward.sh 2>/dev/null &
+        bash ~/.local/bin/tdo-hub/scripts/focus/reward.sh 2>/dev/null &
         # Break phase
         for ((m = BREAK_MIN; m > 0; m--)); do
             update_status "break" "${m}m"

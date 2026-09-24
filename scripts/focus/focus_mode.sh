@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HUB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HUB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$HUB_ROOT/core.sh"
 
 HOSTS_FILE="/etc/hosts"
@@ -25,10 +25,10 @@ activar_focus() {
     # 1. Música (antes de bloquear red, para que rofi funcione)
     local MUSIC_CHOICE=$(echo -e "🔀 Shuffle todo\n🎵 Miss Monique\n🎵 Electronica\n📂 Elegir carpeta...\n🔇 Sin música" | rofi_menu "🎵 ¿Música?")
     case "$MUSIC_CHOICE" in
-        *"Shuffle todo")    bash "$SCRIPTS_DIR/focus_music.sh" play "/" "Todo" ;;
-        *"Miss Monique")    bash "$SCRIPTS_DIR/focus_music.sh" play "Electronica/Miss Monique" "Miss Monique" ;;
-        *"Electronica")     bash "$SCRIPTS_DIR/focus_music.sh" play "Electronica" "Electronica" ;;
-        *"Elegir carpeta")  bash "$SCRIPTS_DIR/focus_music.sh" & ;;
+        *"Shuffle todo")    bash "$SCRIPTS_DIR/focus/focus_music.sh" play "/" "Todo" ;;
+        *"Miss Monique")    bash "$SCRIPTS_DIR/focus/focus_music.sh" play "Electronica/Miss Monique" "Miss Monique" ;;
+        *"Electronica")     bash "$SCRIPTS_DIR/focus/focus_music.sh" play "Electronica" "Electronica" ;;
+        *"Elegir carpeta")  bash "$SCRIPTS_DIR/focus/focus_music.sh" & ;;
         *"Sin música"*)     ;;
         *)                  ;;  # Canceló rofi
     esac
@@ -64,7 +64,7 @@ activar_focus() {
 
     # 6. Inyectar comandos en los paneles vacíos
     # Panel Izquierdo inferior (Pomodoro status)
-    local pomo_emoji=$("${STREAK_SCRIPT:-$SCRIPTS_DIR/streak-tracker.sh}" 2>/dev/null || echo "🍅")
+    local pomo_emoji=$("${STREAK_SCRIPT:-$SCRIPTS_DIR/focus/streak-tracker.sh}" 2>/dev/null || echo "🍅")
     local pomo_status="echo -e '\n🎯 FOCUS MODE\n$pomo_emoji Esperando inicio de pomodoro...'"
     tmux send-keys -t "$SESSION:Focus.2" C-u "$pomo_status" C-m
 
@@ -79,7 +79,7 @@ activar_focus() {
     
     # 7. Auto-iniciar pomodoro si no está activo
     if ! pgrep -f "pomodoro-daemon.sh" > /dev/null 2>&1; then
-        bash "$SCRIPTS_DIR/pomodoro-daemon.sh" run &
+        bash "$SCRIPTS_DIR/focus/pomodoro-daemon.sh" run &
     fi
     notify "🔒 MODO FOCO" "$TAREA_LIMPIA"
 }
@@ -114,7 +114,7 @@ desactivar_focus() {
     if [ -f "$BACKUP_FILE" ]; then
         focus_visual_off
         # Parar música
-        bash "$SCRIPTS_DIR/focus_music.sh" stop 2>/dev/null
+        bash "$SCRIPTS_DIR/focus/focus_music.sh" stop 2>/dev/null
 
         restore_hosts_file "$BACKUP_FILE" || exit 1
         restart_networkmanager || exit 1
