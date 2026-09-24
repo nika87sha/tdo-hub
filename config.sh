@@ -57,6 +57,7 @@ export FOCUS_SCRIPT="${FOCUS_SCRIPT:-$SCRIPTS_DIR/focus/focus_mode.sh}"
 export PANIC_SCRIPT="${PANIC_SCRIPT:-$SCRIPTS_DIR/focus/panic_button.sh}"
 # TRIAGE: script local opcional (no incluido en el repo). Ver .env TRIAGE_SCRIPT.
 export TRIAGE_SCRIPT="${TRIAGE_SCRIPT:-}"
+export SYNC_SCRIPT="${SYNC_SCRIPT:-$SCRIPTS_DIR/system/sync.sh}"
 
 # =========== TMUX ===========
 export SESSION="${SESSION:-work}"

@@ -40,6 +40,7 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
 | 📊 | Stats | Estadísticas ActivityWatch |
 | 🎵 | Música | Menú de música (shuffle, folders, playlists) |
 | 📥 | Organizar | Clasificar inbox automáticamente (script local opcional) |
+| 🔄 | Sync | Sync de notas con git (pull --rebase + commit + push) |
 | ↩️ | Undo | Deshacer última acción |
 | 🛑 | Pánico | Modo emergencia para parar todo |
 
@@ -80,9 +81,10 @@ tdo-hub/
 │   │   └── yesterday.sh
 │   ├── stats/
 │   │   └── aw-stats.sh
-│   └── system/
-│       ├── mpd_auto_update.sh
-│       └── sudoers-tdo
+│   ├── system/
+│   │   ├── mpd_auto_update.sh
+│   │   ├── sudoers-tdo
+│   │   └── sync.sh
 ├── templates/              # Templates por defecto (entry.md, note.md)
 ├── phrases.txt             # Frases motivacionales
 ├── bloqueo_distraccion.txt # Dominios bloqueados en focus
@@ -210,6 +212,7 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 - **Ayer** → `yesterday.sh` (resumen de actividad del día anterior)
 - **Enfocar** → `focus_mode.sh` (bloqueo de distracciones y pomodoro)
 - **Música** → `focus_music.sh` (menú de música MPD)
+- **Sync** → `sync.sh` (pull --rebase + commit + push de notas)
 - **Deshacer** → `undo.sh` (deshacer última acción)
 - **Flow detector** → `flow-detect.sh` (detecta estado de flow)
 

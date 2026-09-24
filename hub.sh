@@ -283,7 +283,7 @@ _open_win() {
 ACTION=""
 if [[ $# -eq 0 ]]; then
     ctx=$(build_context_msg)
-    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🍅 Enfocar\n🛑 Parar Focus\n🧠 Flow\n📊 Stats\n🎵 Música\n📥 Organizar\n↩️ Undo\n🛑 Pánico" | rofi_menu "Hub" "$ctx")
+    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🍅 Enfocar\n🛑 Parar Focus\n🧠 Flow\n📊 Stats\n🎵 Música\n📥 Organizar\n🔄 Sync\n↩️ Undo\n🛑 Pánico" | rofi_menu "Hub" "$ctx")
 fi
 
 # --- DISPATCH DE ACCIONES (menú rofi o directo: hub.sh <accion>) ---
@@ -301,12 +301,13 @@ run_action() {
         stats) a="📊 Stats" ;;
         musica) a="🎵 Música" ;;
         organizar) a="📥 Organizar" ;;
+        sync) a="🔄 Sync" ;;
         undo) a="↩️ Undo" ;;
         panico) a="🛑 Pánico" ;;
         doctor) a="🏥 Doctor" ;;
         help|--help|-h)
             echo "Uso: hub.sh [accion]"
-            echo "Acciones: capturar buscar tareas journal ayer enfocar parar flow stats musica organizar undo panico doctor"
+            echo "Acciones: capturar buscar tareas journal ayer enfocar parar flow stats musica organizar sync undo panico doctor"
             echo "Sin args: menú rofi completo."
             return 0
             ;;
@@ -348,6 +349,9 @@ run_action() {
         else
             notify-send "📥 Organizar" "triage-local.sh no está instalado (script local opcional)"
         fi
+        ;;
+    *"Sync"*)
+        _open_win "sync" "bash '$SCRIPTS_DIR/system/sync.sh'"
         ;;
     *"Undo"*)
         bash "$SCRIPTS_DIR/notes/undo.sh"
