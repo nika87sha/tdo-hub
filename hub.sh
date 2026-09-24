@@ -198,7 +198,7 @@ _doctor() {
         echo -e "  ${GREEN}✓${RESET} sudoers configurado"
     else
         echo -e "  ${RED}✗${RESET} sudoers NO configurado"
-        echo -e "    ${YELLOW}Fix:${RESET} sudo visudo -f /etc/sudoers.d/tdo-hub < $HUB_ROOT/scripts/system/sudoers-tdo"
+        echo -e "    ${YELLOW}Fix:${RESET} bash $HUB_ROOT/scripts/system/install-sudoers.sh"
         ((issues++))
     fi
     

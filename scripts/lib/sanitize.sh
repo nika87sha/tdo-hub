@@ -4,11 +4,13 @@
 # Previene inyección en sed, regex, shell, SQL, paths
 # ==========================================================
 
-# Sanitizar para uso en sed (replacement y pattern)
-# Escapa: / \ & [ ] . * ^ $ ( ) { } | ? + -
+# Sanitizar para uso en sed BRE (replacement y pattern)
+# En BRE de GNU sed: `(`, `)`, `-` sin escapar son literales; `\(`/`\)` son AGRUPACIÓN.
+# Solo escapa lo necesario (/ \ & . * ^ $ [ ] { } | ? +). Perl evita problemas
+# con delimitadores y clases anidadas.
 sanitize_for_sed() {
     local input="$1"
-    printf '%s\n' "$input" | sed 's/[[\/.*^$(){}|?+\\&\\-]/\\&/g'
+    printf '%s\n' "$input" | perl -pe 's{[/\\\\&.*^$\[\]{}|?+]}{\\$&}g'
 }
 
 # Sanitizar para uso en regex (grep -E, awk, etc)

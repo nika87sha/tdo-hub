@@ -497,9 +497,9 @@ get_task_base() {
 
 get_all_tasks() {
     [[ ! -f "$TODO_ACTIVO" ]] && return
-    # Captura tareas multilínea: la línea principal + líneas de continuación (due:/@tags)
+    # Captura SOLO tareas pendientes ([ ]); las [x]/[X] hechas no se listan
     awk '
-        /^[[:space:]]*-[[:space:]]*\[[ x]\]/ {
+        /^[[:space:]]*-[[:space:]]*\[ \]/ {
             if (task != "") print task
             task = $0
             next
@@ -510,7 +510,22 @@ get_all_tasks() {
         }
         { if (task != "") { print task; task = "" } }
         END { if (task != "") print task }
-    ' "$TODO_ACTIVO" | sed 's/^[[:space:]]*-[[:space:]]*\[[ x]\] //'
+    ' "$TODO_ACTIVO" | sed 's/^[[:space:]]*-[[:space:]]*\[ \] //'
+}
+
+# Marca una tarea como hecha de forma robusta: busca la línea por coincidencia
+# LITERAL (grep -F) y reemplaza solo el prefijo [ ] → [x].
+# No usa regex, así que aguanta paréntesis, puntos, /, ~, tildes, etc.
+mark_task_done() {
+    local task="$1"
+    local task_base=$(get_task_base "$task")
+    # Normaliza el marcador 🎯 (puede aparecer o no en la selección)
+    task_base="${task_base//🎯 /}"; task_base="${task_base//🎯}"
+    [[ -z "$task_base" ]] && return 1
+    local line=$(grep -nF -- "- [ ] 🎯 $task_base" "$TODO_ACTIVO" 2>/dev/null | head -1 | cut -d: -f1)
+    [[ -z "$line" ]] && line=$(grep -nF -- "- [ ] $task_base" "$TODO_ACTIVO" 2>/dev/null | head -1 | cut -d: -f1)
+    [[ -z "$line" ]] && return 1
+    sed -i "${line}s/^- \[ \] /- [x] /" "$TODO_ACTIVO"
 }
 
 # =========== MÚSICA (MPD) ===========

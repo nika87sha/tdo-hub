@@ -57,7 +57,7 @@ while true; do
             if echo "$FULL_TASK" | grep -q "repeat:"; then
                 complete_task_with_recurrence "$FULL_TASK"
             else
-                atomic_sed_replace "$TODO_ACTIVO" "s/- \[ \] $ESC/- [x] $ESC/"
+                mark_task_done "$FULL_TASK"
             fi
             notify "¡Hecho!" "$FULL_TASK" ;;
         11) edit_task "$FULL_TASK" ;;
@@ -72,7 +72,7 @@ while true; do
             ACCION=$(echo -e "✏️ Editar\n🎯 Focus\n✅ Done\n🔄 Recurrente\n❌ Borrar" | rofi_menu "$SEL")
             [[ "$ACCION" == *"Editar"* ]] && edit_task "$FULL_TASK"
             [[ "$ACCION" == *"Focus"* ]] && atomic_sed_replace "$TODO_ACTIVO" "s/🎯 //g" && atomic_sed_replace "$TODO_ACTIVO" "s/- \[ \] $ESC/- [ ] 🎯 $ESC/" && start_focus_here "$SEL" && break
-            [[ "$ACCION" == *"Done"* ]] && { timew stop 2>/dev/null; echo "- [x] $(date +%Y-%m-%d) $FULL_TASK" >> "$TODO_TRASH"; atomic_sed_replace "$TODO_ACTIVO" "s/- \[ \] $ESC/- [x] $ESC/"; notify "¡Hecho!" "$FULL_TASK"; }
+            [[ "$ACCION" == *"Done"* ]] && { timew stop 2>/dev/null; echo "- [x] $(date +%Y-%m-%d) $FULL_TASK" >> "$TODO_TRASH"; mark_task_done "$FULL_TASK"; notify "¡Hecho!" "$FULL_TASK"; }
             [[ "$ACCION" == *"Recurrente"* ]] && complete_task_with_recurrence "$FULL_TASK"
             [[ "$ACCION" == *"Borrar"* ]] && echo "# BORRADO $(date +%Y-%m-%d_%H:%M): $FULL_TASK" >> "$TODO_TRASH" && atomic_sed_replace "$TODO_ACTIVO" "/$ESC/d"
             ;;

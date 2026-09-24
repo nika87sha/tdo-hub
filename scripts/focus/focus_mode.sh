@@ -166,7 +166,9 @@ case "${1:-toggle}" in
         fi
         ;;
     *)
-        if grep -q "### FOCUS MODE ACTIVADO ###" "$HOSTS_FILE"; then
+        # Detección robusta: el marcador puede faltar (hosts regenerado),
+        # pero focus sigue activo mientras exista el backup → desactivar.
+        if grep -q "### FOCUS MODE ACTIVADO ###" "$HOSTS_FILE" || [ -f "$BACKUP_FILE" ]; then
             check_requirements
             desactivar_focus
         else

@@ -38,7 +38,8 @@ case "${1:-toggle}" in
             idle_status
             notify-send -u low "Pomodoro" "Detenido"
         else
-            "$0" run &
+            nohup "$0" run >/dev/null 2>&1 &
+            disown
             echo $! > /tmp/pomodoro-pid
             notify-send -u normal "Pomodoro" "25 min de foco. ¡A darle!"
         fi

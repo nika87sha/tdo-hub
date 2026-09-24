@@ -1,21 +1,23 @@
 # ==========================================================
 # 🔐 SUDOERS - Reglas específicas para TDO Hub
-# Instalar con: sudo visudo -f /etc/sudoers.d/tdo-hub
+# Plantilla: NO editar aquí. Generada dinámicamente por:
+#   bash "$HUB_ROOT/scripts/system/install-sudoers.sh"
+# Instala con: sudo visudo -f /etc/sudoers.d/tdo-hub
 # ==========================================================
 
-# Permitir a usuario verodg ejecutar comandos específicos SIN contraseña
+# Permitir a __USER__ ejecutar comandos específicos SIN contraseña
 # Solo para focus_mode.sh: gestión de /etc/hosts y NetworkManager
 
 # 1. Leer/escribir /etc/hosts (backup y restore)
-verodg ALL=(root) NOPASSWD: /usr/bin/cp /etc/hosts /home/verodg/.local/bin/tdo-hub/hosts.bak
-verodg ALL=(root) NOPASSWD: /usr/bin/cp /home/verodg/.local/bin/tdo-hub/hosts.bak /etc/hosts
-verodg ALL=(root) NOPASSWD: /usr/bin/tee -a /etc/hosts
+__USER__ ALL=(root) NOPASSWD: /usr/bin/cp /etc/hosts __HUB_ROOT__/hosts.bak
+__USER__ ALL=(root) NOPASSWD: /usr/bin/cp __HUB_ROOT__/hosts.bak /etc/hosts
+__USER__ ALL=(root) NOPASSWD: /usr/bin/tee -a /etc/hosts
 
 # 2. Reiniciar NetworkManager (para aplicar cambios de hosts)
-verodg ALL=(root) NOPASSWD: /usr/bin/systemctl restart NetworkManager
+__USER__ ALL=(root) NOPASSWD: /usr/bin/systemctl restart NetworkManager
 
 # 3. Limpiar cache DNS (resolvectl)
-verodg ALL=(root) NOPASSWD: /usr/bin/resolvectl flush-caches
+__USER__ ALL=(root) NOPASSWD: /usr/bin/resolvectl flush-caches
 
 # ==========================================================
 # NOTA: Estas reglas son específicas y restrictivas.
