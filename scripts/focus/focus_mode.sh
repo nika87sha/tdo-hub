@@ -39,19 +39,19 @@ activar_focus() {
     restart_networkmanager || exit 1
     flush_dns_cache 
 
-    # 2. Info de la Tarea
+    # 3. Info de la Tarea
     local TAREA_LIMPIA=$(grep "🎯" "$TODO_ACTIVO" | sed 's/.*🎯 //; s/.*\[ \] //')
     [ -z "$TAREA_LIMPIA" ] && TAREA_LIMPIA="Foco"
     local FRASE=$(shuf -n 1 "$PHRASES_FILE" 2>/dev/null || echo "Dale.")
 
-    # 3. TMUX - Ventana "Focus" por nombre (no por índice: el 5 puede ser otra cosa)
+    # 4. TMUX - Ventana "Focus" por nombre (no por índice: el 5 puede ser otra cosa)
     tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION"
 
     # Matar la ventana Focus si existe para recrearla limpia
     tmux kill-window -t "$SESSION:Focus" 2>/dev/null
     tmux new-window -t "$SESSION" -n "Focus"
 
-    # 4. Crear la estructura PRIMERO
+    # 5. Crear la estructura PRIMERO
     # Dividimos la ventana Focus: Panel 0 (izq) y Panel 1 (der)
     tmux split-window -h -p 35 -t "$SESSION:Focus.0"
 
@@ -62,7 +62,7 @@ activar_focus() {
     tmux split-window -v -p 20 -t "$SESSION:Focus.0"
     sleep 0.2
 
-    # 5. Inyectar comandos en los paneles vacíos
+    # 6. Inyectar comandos en los paneles vacíos
     # Panel Izquierdo inferior (Pomodoro status)
     local pomo_status="echo -e '\n🎯 FOCUS MODE\n🍅 Esperando inicio de pomodoro...'"
     tmux send-keys -t "$SESSION:Focus.2" C-u "$pomo_status" C-m
@@ -76,7 +76,7 @@ activar_focus() {
     # Asegurar foco en nvim
     tmux select-pane -t "$SESSION:Focus.0"
     
-    # 6. Auto-iniciar pomodoro si no está activo
+    # 7. Auto-iniciar pomodoro si no está activo
     if ! pgrep -f "pomodoro-daemon.sh" > /dev/null 2>&1; then
         bash "$SCRIPTS_DIR/focus/pomodoro-daemon.sh" run &
     fi
