@@ -437,7 +437,22 @@ get_task_categories() {
 }
 
 sort_by_priority() {
-    echo "$1" | awk '/^!!/{p=1} /^!/{p=2} /^[^!]/{p=3} {print p"|"$0}' | sort -t'|' -n -k1 | cut -d'|' -f2-
+    local today=$(date +%Y-%m-%d)
+    echo "$1" | awk -v today="$today" '
+        function due(t) {
+            return (match(t, /due:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/) ?
+                substr(t, RSTART + 4, 10) : "")
+        }
+        {
+            d = due($0)
+            bucket = 2
+            if (d != "" && d < today) bucket = 0
+            else if (d == today) bucket = 1
+            p = 3
+            if ($0 ~ /^!!/) p = 1
+            else if ($0 ~ /^!/) p = 2
+            print bucket "" p "|" $0
+        }' | sort -t'|' -n -k1 | cut -d'|' -f2-
 }
 
 filter_tasks_by_date() {

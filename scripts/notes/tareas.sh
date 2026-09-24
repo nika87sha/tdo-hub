@@ -34,7 +34,7 @@ while true; do
 
     SORTED_TASKS=$(sort_by_priority "$ALL_TASKS")
 
-    SEL_RAW=$(echo "$SORTED_TASKS" | sed 's/^!!/🔥 /; s/^!/⚡ /' | rofi_menu_custom "✅ Tareas" "Escribe para filtrar | Alt+c: Done | Alt+e: Edit | Alt+d: Focus" -kb-custom-1 "Alt+c" -kb-custom-2 "Alt+e" -kb-custom-3 "Alt+d")
+    SEL_RAW=$(echo "$SORTED_TASKS" | sed 's/^!!/🔥 /; s/^!/⚡ /' | rofi_menu_custom "✅ Tareas" "Escribe para filtrar | Alt+c: Done | Alt+e: Edit | Alt+d: Focus" -theme-str 'listview { columns: 1; }' -theme-str 'window { width: 1100px; }' -kb-custom-1 "Alt+c" -kb-custom-2 "Alt+e" -kb-custom-3 "Alt+d")
     CODE=$?
     [[ $CODE -eq 1 || -z "$SEL_RAW" ]] && break
 
