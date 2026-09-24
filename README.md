@@ -13,12 +13,10 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
   - [Atajos de teclado (esenciales 8)](#atajos-de-teclado-esenciales-8)
   - [Menú Hub (SUPER+N) — Menú en una sola pantalla](#menú-hub-supern---menú-en-una-sola-pantalla)
   - [Focus Mode](#focus-mode)
-  - [Música](#música)
   - ["¿Qué estaba haciendo ayer?"](#-qué-estaba-haciendo-ayer-superalt-y-)
   - [Brain dump y notas de voz](#brain-dump-y-notas-de-voz-superaltt-b-superaltt-t-superalt-m-)
     - [Requisitos de transcripción de voz (STT)](#requisitos-de-transcripción-de-voz-stt)
   - [Flow State Detector](#flow-state-detector-superaltd-)
-  - [Sistema de Recompensas](#sistema-de-recompensas)
   - [Integración Waybar (Pomodoro)](#integración-waybar-pomodoro)
 - [Tests](#tests)
 - [Aliases útiles](#aliases-útiles)
@@ -37,19 +35,10 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
 | 📓 | Journal | Diario del día |
 | 🔯 | Ayer | Resumen de actividad + journal + tareas |
 | 🍅 | Enfocar | Activar Focus Mode con bloqueo |
-| ⏱️ | Time | Resumen timewarrior |
 | 🧠 | Flow | Detectar flow state actual |
-| 🎁 | Reward | Ver recompensas disponibles |
 | 📊 | Stats | Estadísticas ActivityWatch |
-| 🎵 | Música | Menú de música (shuffle, folders, playlists) |
-| 🎲 | Redescubrir | Nota aleatoria del día |
-| 📥 | Organizar | Clasificar inbox automáticamente |
-| 🔄 | Sync | Sync notas con git |
+| 📥 | Organizar | Clasificar inbox automáticamente (script local opcional) |
 | ↩️ | Undo | Deshacer última acción |
-| ⚙️ | Config | Editar configuración / ver rutas / limpiar caché |
-| 🛑 | Pánico | Modo emergencia para parar todo |
-
-| ⚙️ | Config | Editar configuración / ver rutas / limpiar caché |
 | 🛑 | Pánico | Modo emergencia para parar todo |
 
 ---
@@ -64,28 +53,33 @@ tdo-hub/
 ├── .env.example            # Ejemplo de configuración
 ├── .env                    # Tu configuración personal (no se sube)
 ├── scripts/
-│   ├── focus_mode.sh       # Bloqueo de red + focus
-│   ├── focus_music.sh      # Música para focus mode
-│   ├── journal.sh          # Diario personal
-│   ├── quick-capture-rofi.sh  # Captura interactiva
-│   ├── buscar.sh           # Buscar en notas (tmux + fzf)
-│   ├── tareas.sh           # Lista de tareas con prioridades
-│   ├── undo.sh             # Deshacer última acción
-│   ├── config-menu.sh      # Editar config / rutas / caché
-│   ├── time.sh             # Resumen timewarrior en tmux
-│   ├── brain-dump.sh       # Idea rápida al brain dump del día
-│   ├── voice-note.sh       # Graba 5s y transcribe a brain dump
-│   ├── aw-stats.sh         # Estadísticas ActivityWatch
-│   ├── daily-routine.sh    # Resumen diario
-│   ├── streak-tracker.sh   # Tracker de rachas
-│   ├── panic_button.sh     # Botón de pánico
-│   ├── note-of-the-day.py  # Nota aleatoria del día
-│   ├── yesterday.sh        # ¿Qué estaba haciendo ayer?
-│   ├── flow-detect.sh      # Flow state detector
-│   ├── reward.sh           # Sistema de recompensas
-│   ├── pomodoro-daemon.sh  # Daemon pomodoro + estado para waybar
-│   ├── pomodoro-waybar.sh  # Módulo custom/pomodoro de waybar
-│   ├── mpd_auto_update.sh  # Auto-update de base MPD
+│   ├── capture/            # Captura rápida (rofi, voz, buscar)
+│   │   ├── brain-dump.sh
+│   │   ├── buscar.sh
+│   │   ├── quick-capture-rofi.sh
+│   │   └── voice-note.sh
+│   ├── focus/              # Focus mode + pomodoro
+│   │   ├── flow-detect.sh
+│   │   ├── focus_mode.sh
+│   │   ├── panic_button.sh
+│   │   ├── pomodoro-daemon.sh
+│   │   └── pomodoro-waybar.sh
+│   ├── lib/                # Bibliotecas (se sourcean, no se ejecutan)
+│   │   ├── aw_client.sh
+│   │   ├── logger.sh
+│   │   ├── rofi.sh
+│   │   └── sanitize.sh
+│   ├── notes/              # Journal, tareas, rutina diaria
+│   │   ├── daily-routine.sh
+│   │   ├── journal.sh
+│   │   ├── tareas.sh
+│   │   ├── undo.sh
+│   │   └── yesterday.sh
+│   ├── stats/
+│   │   └── aw-stats.sh
+│   └── system/
+│       ├── mpd_auto_update.sh
+│       └── sudoers-tdo
 ├── templates/              # Templates por defecto (entry.md, note.md)
 ├── phrases.txt             # Frases motivacionales
 ├── bloqueo_distraccion.txt # Dominios bloqueados en focus
@@ -219,17 +213,9 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 
 1. Marca una tarea con 🎯 en tu archivo de tareas activas (desde `tareas.sh` con `Alt+d`)
 2. Activa focus: `SUPER+Alt+F` o Hub → 🍅 Enfocar
-3. Selecciona música (shuffle, directorio específico, o sin música)
-4. Se bloquean distracciones y arranca pomodoro
-5. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea en timew
-6. Si no hay 🎯: focus arranca genérico y al parar **no pregunta proyecto**
-
-### Música
-
-- **Desde Hub**: 🍅 Enfocar / 🎵 Música (menú único)
-- **En Focus**: se activa automáticamente al entrar
-- **ncmpcpp**: para control manual mientras trabajas
-- **Playlists**: guardadas en `~/Musica/playlists/`
+3. Se bloquean distracciones y arranca pomodoro
+4. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea en timew
+5. Si no hay 🎯: focus arranca genérico y al parar **no pregunta proyecto**
 
 ### "¿Qué estaba haciendo ayer?" (`SUPER+Alt+Y`)
 
@@ -285,15 +271,6 @@ Analiza tu actividad reciente y te notifica si:
 - Estás en **Firefox** → "¿Esto es productivo?"
 - Estás en **terminal/editor** → "Mantén el ritmo 🍅"
 - Estás en **comunicación** → "¿Puedes responder después?"
-
-### Sistema de Recompensas
-
-Automático después de cada pomodoro:
-- **3 pomodoros** → ☕ Tómate un café
-- **6 pomodoros** → 🏃 Mueve el cuerpo 5 min
-- **9 pomodoros** → 🎵 Tu música favorita 5 min
-- **12 pomodoros** → 📱 Revisa tu phone (5 min max)
-- **15 pomodoros** → 🏆 ¡15 min libres!
 
 ### 4. Integración Waybar (Pomodoro)
 
@@ -353,10 +330,8 @@ Para programar tareas periódicas, añade las siguientes líneas a tu `crontab` 
 |---------|--------|-------------|
 | `0 9 * * *` | `daily-routine.sh` | Resumen del día a las 9:00 |
 | `21 * * * *` | `notify-send "Journal reminder"` | Recordatorio de journal a las 21:00 |
-| `0 * * * *` | `time.sh` | Resumen de timewarrior cada hora |
-| `0 6 * * 1` | `weekly-review.sh` | Revisión semanal los lunes a las 6:00 |
 
-Los scripts `daily-routine.sh`, `time.sh` y otros están en `~/scripts/` y deben ser ejecutables. Asegúrate de que la variable `SESSION` en tu `.env` coincida con el nombre de sesión tmux que usarán los scripts.
+Los scripts `daily-routine.sh` y otros están en `scripts/notes/` y deben ser ejecutables. Asegúrate de que la variable `SESSION` en tu `.env` coincida con el nombre de sesión tmux que usarán los scripts.
 
 ---
 

@@ -165,11 +165,10 @@ check_file "$SCRIPT_DIR/templates/note.md" "note.md (notas)"
 # 7. SCRIPTS
 echo -e "\n${BLUE}🔧 Scripts:${RESET}"
 SCRIPT_COUNT=0
-for s in "$SCRIPT_DIR"/scripts/*.sh; do
-    [ -f "$s" ] || continue
+while IFS= read -r -d '' s; do
     SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
     check_executable "$s" "$(basename "$s")" || true
-done
+done < <(find "$SCRIPT_DIR/scripts" -name '*.sh' -print0 2>/dev/null)
 log_check "✓" "$SCRIPT_COUNT scripts encontrados"
 
 # 8. PERMISOS
@@ -200,8 +199,7 @@ echo -e "\n${BLUE}🔍 Shellcheck:${RESET}"
 if command -v shellcheck &>/dev/null; then
     SHELLCHECK_ERRORS=0
     SHELLCHECK_CHECKED=0
-    for script in "$SCRIPT_DIR"/scripts/*.sh "$SCRIPT_DIR"/hub.sh "$SCRIPT_DIR"/core.sh "$SCRIPT_DIR"/validate.sh; do
-        [ -f "$script" ] || continue
+    while IFS= read -r -d '' script; do
         SHELLCHECK_CHECKED=$((SHELLCHECK_CHECKED + 1))
         if shellcheck -x -e SC1091 -e SC2034 "$script" >/dev/null 2>&1; then
             log_check "✓" "shellcheck: $(basename "$script")"
@@ -210,7 +208,7 @@ if command -v shellcheck &>/dev/null; then
             log_check "⚠" "shellcheck: $(basename "$script") ($ERRORS issues)"
             SHELLCHECK_ERRORS=$((SHELLCHECK_ERRORS + ERRORS))
         fi
-    done
+    done < <(find "$SCRIPT_DIR/scripts" -name '*.sh' -print0 2>/dev/null; printf '%s\0' "$SCRIPT_DIR/hub.sh" "$SCRIPT_DIR/core.sh" "$SCRIPT_DIR/validate.sh")
     if [ "$SHELLCHECK_ERRORS" -gt 0 ]; then
         log_check "⚠" "$SHELLCHECK_ERRORS problemas shellcheck (no críticos)"
     else

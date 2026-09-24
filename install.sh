@@ -198,10 +198,8 @@ set_permissions() {
     chmod +x "$SCRIPT_DIR/config.sh" 2>/dev/null && print_success "config.sh"
     chmod +x "$SCRIPT_DIR/validate.sh" 2>/dev/null && print_success "validate.sh"
     
+    chmod +x "$SCRIPT_DIR"/scripts/*/*.sh 2>/dev/null && print_success "scripts/ (subcarpetas)"
     chmod +x "$SCRIPT_DIR"/scripts/*.sh 2>/dev/null && print_success "scripts/"
-    
-    # Si hay directorio old/, también darles permisos
-    [ -d "$SCRIPT_DIR/old" ] && chmod +x "$SCRIPT_DIR"/old/*.sh 2>/dev/null
 }
 
 # =========== VALIDACIÓN ===========

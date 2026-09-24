@@ -58,7 +58,8 @@ aw_summary_today | while IFS='|' read -r hours app; do
 done
 
 # Add shell/terminal time (from shell bucket heartbeats)
-SHELL_SECONDS=$(cd /home/verodg/.local/bin/tdo-hub/scripts && bash -c "source ./aw_client.sh && aw_get_shell_events \"\$(date -d 'today 00:00:00' -u +%Y-%m-%dT%H:%M:%SZ)\" \"\$(date -d 'today 23:59:59' -u +%Y-%m-%dT%H:%M:%SZ)\"" | python3 -c "
+# AW client vive en lib/ (una nivel arriba desde stats/)
+SHELL_SECONDS=$(bash -c "source '$SCRIPT_DIR/../lib/aw_client.sh' && aw_get_shell_events \"\$(date -d 'today 00:00:00' -u +%Y-%m-%dT%H:%M:%SZ)\" \"\$(date -d 'today 23:59:59' -u +%Y-%m-%dT%H:%M:%SZ)\"" | python3 -c "
 import sys, json
 events = json.load(sys.stdin)
 total = 0
@@ -162,7 +163,7 @@ echo -e "  ${B}━━━ DENTRO DE LA TERMINAL ━━━━━━━━━━━
 echo ""
 
 # Get shell events with command breakdown and estimate time per command
-cd /home/verodg/.local/bin/tdo-hub/scripts && bash -c "source ./aw_client.sh && aw_get_shell_events \"\$(date -d 'today 00:00:00' -u +%Y-%m-%dT%H:%M:%SZ)\" \"\$(date -d 'today 23:59:59' -u +%Y-%m-%dT%H:%M:%SZ)\"" | python3 -c "
+bash -c "source '$SCRIPT_DIR/../lib/aw_client.sh' && aw_get_shell_events \"\$(date -d 'today 00:00:00' -u +%Y-%m-%dT%H:%M:%SZ)\" \"\$(date -d 'today 23:59:59' -u +%Y-%m-%dT%H:%M:%SZ)\"" | python3 -c "
 import sys, json
 from collections import defaultdict
 
@@ -210,7 +211,7 @@ elif heartbeats > 0:
 done
 
 # If no breakdown available
-if ! cd /home/verodg/.local/bin/tdo-hub/scripts && bash -c "source ./aw_client.sh && aw_get_shell_events \"\$(date -d 'today 00:00:00' -u +%Y-%m-%dT%H:%M:%SZ)\" \"\$(date -d 'today 23:59:59' -u +%Y-%m-%dT%H:%M:%SZ)\"" | python3 -c "
+if ! bash -c "source '$SCRIPT_DIR/../lib/aw_client.sh' && aw_get_shell_events \"\$(date -d 'today 00:00:00' -u +%Y-%m-%dT%H:%M:%SZ)\" \"\$(date -d 'today 23:59:59' -u +%Y-%m-%dT%H:%M:%SZ)\"" | python3 -c "
 import sys, json
 events = json.load(sys.stdin)
 has_data = any(not e.get('data', {}).get('heartbeat') and e.get('data', {}).get('command') for e in events)

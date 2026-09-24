@@ -65,8 +65,6 @@ open_note() {
     hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
 }
 
-# --- NOTA ALEATORIA AL INICIAR (solo accesible desde ⚙️ Más → Redescubrir) ---
-
 # --- RUTINA DIARIA ---
 run_daily_routine_once() {
     local LAST_RUN_FILE="$HOME/.config/tdo/last-daily-run"
@@ -135,9 +133,7 @@ build_context_msg() {
 session_feedback() {
     local done_today=$(grep -c "\[x\] $(date +%Y-%m-%d)" "$TODO_ACTIVO" 2>/dev/null)
     [[ -z "$done_today" ]] && done_today=0
-    local streak=$(bash "$SCRIPTS_DIR/focus/streak-tracker.sh" 2>/dev/null)
-    [[ -z "$streak" ]] && streak=0
-    notify "TDO" "✅ $done_today hoy · 🔥 $streak días"
+    notify "TDO" "✅ $done_today tareas hechas hoy"
 }
 
 # --- DOCTOR ---
@@ -226,15 +222,14 @@ _doctor() {
         ((warnings++))
     fi
     
-    # 9. Scripts ejecutables
+    # 9. Scripts ejecutables (recursivo, hay subcarpetas)
     echo -e "\n${BLUE}🔧 Scripts:${RESET}"
     local script_count=0
     local exec_count=0
-    for s in "$SCRIPTS_DIR"/*.sh; do
-        [[ -f "$s" ]] || continue
+    while IFS= read -r -d '' s; do
         ((script_count++))
         [[ -x "$s" ]] && ((exec_count++))
-    done
+    done < <(find "$SCRIPTS_DIR" -name '*.sh' -print0 2>/dev/null)
     echo -e "  ${GREEN}✓${RESET} $exec_count/$script_count scripts ejecutables"
     
     # Resumen
@@ -288,7 +283,7 @@ _open_win() {
 ACTION=""
 if [[ $# -eq 0 ]]; then
     ctx=$(build_context_msg)
-    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🎲 Redescubrir\n🍅 Enfocar\n🛑 Parar Focus\n⏱️ Time\n🧠 Flow\n🎁 Reward\n📊 Stats\n🎵 Música\n📥 Organizar\n🔄 Sync\n📋 Weekly Review\n↩️ Undo\n🛑 Pánico\n⚙️ Config" | rofi_menu "Hub" "$ctx")
+    ACTION=$(echo -e "📝 Capturar\n🔍 Buscar\n📋 Tareas\n📓 Journal\n🔙 Ayer\n🍅 Enfocar\n🛑 Parar Focus\n🧠 Flow\n📊 Stats\n📥 Organizar\n↩️ Undo\n🛑 Pánico" | rofi_menu "Hub" "$ctx")
 fi
 
 # --- DISPATCH DE ACCIONES (menú rofi o directo: hub.sh <accion>) ---
@@ -302,22 +297,15 @@ run_action() {
         ayer) a="🔙 Ayer" ;;
         enfocar) a="🍅 Enfocar" ;;
         parar) a="🛑 Parar Focus" ;;
-        time) a="⏱️ Time" ;;
         flow) a="🧠 Flow" ;;
-        reward) a="🎁 Reward" ;;
         stats) a="📊 Stats" ;;
-        musica) a="🎵 Música" ;;
-        redescubrir) a="🎲 Redescubrir" ;;
         organizar) a="📥 Organizar" ;;
-        sync) a="🔄 Sync" ;;
-        weekly) a="📋 Weekly Review" ;;
         undo) a="↩️ Undo" ;;
         panico) a="🛑 Pánico" ;;
-        config) a="⚙️ Config" ;;
         doctor) a="🏥 Doctor" ;;
         help|--help|-h)
             echo "Uso: hub.sh [accion]"
-            echo "Acciones: capturar buscar tareas journal ayer enfocar parar time flow reward stats musica redescubrir organizar sync weekly undo panico config doctor"
+            echo "Acciones: capturar buscar tareas journal ayer enfocar parar flow stats organizar undo panico doctor"
             echo "Sin args: menú rofi completo."
             return 0
             ;;
@@ -344,24 +332,11 @@ run_action() {
         bash "$FOCUS_SCRIPT" stop 2>&1 | head -5
         notify "🛑 Focus parado"
         ;;
-    *"Time"*)
-        bash "$SCRIPTS_DIR/notes/time.sh"
-        ;;
     *"Flow"*)
         bash "$SCRIPTS_DIR/focus/flow-detect.sh" 15
         ;;
-    *"Reward"*)
-        bash "$SCRIPTS_DIR/focus/reward.sh" 3
-        ;;
     *"Stats"*)
         _open_win "stats" "bash '$SCRIPTS_DIR/stats/aw-stats.sh'"
-        ;;
-    *"Música"*)
-        bash "$SCRIPTS_DIR/focus/focus_music.sh"
-        ;;
-    *"Redescubrir"*)
-        nota=$(python3 "$SCRIPTS_DIR/system/note-of-the-day.py" 2>/dev/null)
-        [[ -n "$nota" && -f "$nota" ]] && _open_win "note" "nvim '$nota'"
         ;;
     *"Organizar"*)
         if [[ -f "$SCRIPTS_DIR/triage-local.sh" ]]; then
@@ -370,20 +345,11 @@ run_action() {
             notify-send "📥 Organizar" "triage-local.sh no está instalado (script local opcional)"
         fi
         ;;
-    *"Sync"*)
-        _open_win "sync" "bash '$SCRIPTS_DIR/system/sync.sh'"
-        ;;
-    *"Weekly Review"*)
-        _open_win "weekly" "bash '$SCRIPTS_DIR/notes/weekly-review.sh open'"
-        ;;
     *"Undo"*)
         bash "$SCRIPTS_DIR/notes/undo.sh"
         ;;
     *"Pánico"*)
         _open_win "panic" "bash '$PANIC_SCRIPT'"
-        ;;
-    *"Config"*)
-        bash "$SCRIPTS_DIR/system/config-menu.sh"
         ;;
     *"Doctor"*)
         _doctor

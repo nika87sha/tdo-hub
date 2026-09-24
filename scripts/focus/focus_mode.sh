@@ -22,29 +22,18 @@ activar_focus() {
     # 0. Visual Hyprland (solo si hay Hyprland)
     focus_visual_on
 
-    # 1. Música (antes de bloquear red, para que rofi funcione)
-    local MUSIC_CHOICE=$(echo -e "🔀 Shuffle todo\n🎵 Miss Monique\n🎵 Electronica\n📂 Elegir carpeta...\n🔇 Sin música" | rofi_menu "🎵 ¿Música?")
-    case "$MUSIC_CHOICE" in
-        *"Shuffle todo")    bash "$SCRIPTS_DIR/focus/focus_music.sh" play "/" "Todo" ;;
-        *"Miss Monique")    bash "$SCRIPTS_DIR/focus/focus_music.sh" play "Electronica/Miss Monique" "Miss Monique" ;;
-        *"Electronica")     bash "$SCRIPTS_DIR/focus/focus_music.sh" play "Electronica" "Electronica" ;;
-        *"Elegir carpeta")  bash "$SCRIPTS_DIR/focus/focus_music.sh" & ;;
-        *"Sin música"*)     ;;
-        *)                  ;;  # Canceló rofi
-    esac
-
-    # 2. Bloqueo de red (usa privileged ops con sudoers específico)
+    # 1. Bloqueo de red (usa privileged ops con sudoers específico)
     backup_hosts_file "$BACKUP_FILE" || exit 1
     append_to_hosts "$(cat "$BLOCK_FILE"; echo -e "\n### FOCUS MODE ACTIVADO ###")" || exit 1
     restart_networkmanager || exit 1
     flush_dns_cache 
 
-    # 3. Info de la Tarea
+    # 2. Info de la Tarea
     local TAREA_LIMPIA=$(grep "🎯" "$TODO_ACTIVO" | sed 's/.*🎯 //; s/.*\[ \] //')
     [ -z "$TAREA_LIMPIA" ] && TAREA_LIMPIA="Foco"
     local FRASE=$(shuf -n 1 "$PHRASES_FILE" 2>/dev/null || echo "Dale.")
 
-    # 4. TMUX - Ventana "Focus" por nombre (no por índice: el 5 puede ser otra cosa)
+    # 3. TMUX - Ventana "Focus" por nombre (no por índice: el 5 puede ser otra cosa)
     tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION"
 
     # Matar la ventana Focus si existe para recrearla limpia
@@ -64,8 +53,7 @@ activar_focus() {
 
     # 6. Inyectar comandos en los paneles vacíos
     # Panel Izquierdo inferior (Pomodoro status)
-    local pomo_emoji=$("${STREAK_SCRIPT:-$SCRIPTS_DIR/focus/streak-tracker.sh}" 2>/dev/null || echo "🍅")
-    local pomo_status="echo -e '\n🎯 FOCUS MODE\n$pomo_emoji Esperando inicio de pomodoro...'"
+    local pomo_status="echo -e '\n🎯 FOCUS MODE\n🍅 Esperando inicio de pomodoro...'"
     tmux send-keys -t "$SESSION:Focus.2" C-u "$pomo_status" C-m
 
     # Panel Derecho (Banner)
@@ -113,8 +101,6 @@ focus_visual_off() {
 desactivar_focus() {
     if [ -f "$BACKUP_FILE" ]; then
         focus_visual_off
-        # Parar música
-        bash "$SCRIPTS_DIR/focus/focus_music.sh" stop 2>/dev/null
 
         restore_hosts_file "$BACKUP_FILE" || exit 1
         restart_networkmanager || exit 1
