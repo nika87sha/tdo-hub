@@ -1,6 +1,7 @@
 # TDO Hub
 
-Un menú de productividad con atajos de teclado para capturar tareas, llevar journal, enfocar y ver estadísticas. Hyprland + rofi + tmux.
+Un menú de productividad con atajos de teclado para capturar tareas, llevar
+journal, enfocar y ver estadísticas. Hyprland + rofi + tmux.
 
 ---
 
@@ -28,21 +29,21 @@ Un menú de productividad con atajos de teclado para capturar tareas, llevar jou
 
 ## Funciones principales
 
-| Icono | Función | Descripción |
-|-------|---------|-------------|
-| 📝 | Capturar | Nueva nota o tarea rápida |
-| 🔍 | Buscar | Buscar en notas con fzf en tmux |
-| 📋 | Tareas | Lista de tareas con prioridades |
-| 📓 | Journal | Diario del día |
-| 🔯 | Ayer | Resumen de actividad + journal + tareas |
-| 🍅 | Enfocar | Activar Focus Mode con bloqueo |
-| 🧠 | Flow | Detectar flow state actual |
-| 📊 | Stats | Estadísticas ActivityWatch |
-| 🎵 | Música | Menú de música (shuffle, folders, playlists) |
-| 📥 | Organizar | Clasificar inbox automáticamente (script local opcional) |
-| 🔄 | Sync | Sync de notas con git (pull --rebase + commit + push) |
-| ↩️ | Undo | Deshacer última acción |
-| 🛑 | Pánico | Modo emergencia para parar todo |
+| Icono | Función   | Descripción                                              |
+| ----- | --------- | -------------------------------------------------------- |
+| 📝    | Capturar  | Nueva nota o tarea rápida                                |
+| 🔍    | Buscar    | Buscar en notas con fzf en tmux                          |
+| 📋    | Tareas    | Lista de tareas con prioridades                          |
+| 📓    | Journal   | Diario del día                                           |
+| 🔯    | Ayer      | Resumen de actividad + journal + tareas                  |
+| 🍅    | Enfocar   | Activar Focus Mode con bloqueo                           |
+| 🧠    | Flow      | Detectar flow state actual                               |
+| 📊    | Stats     | Estadísticas ActivityWatch                               |
+| 🎵    | Música    | Menú de música (shuffle, folders, playlists)             |
+| 📥    | Organizar | Clasificar inbox automáticamente (script local opcional) |
+| 🔄    | Sync      | Sync de notas con git (pull --rebase + commit + push)    |
+| ↩️    | Undo      | Deshacer última acción                                   |
+| 🛑    | Pánico    | Modo emergencia para parar todo                          |
 
 ---
 
@@ -97,7 +98,9 @@ tdo-hub/
 
 ### 1. Archivo `.env` (obligatorio)
 
-El proyecto usa un archivo `.env` como **única fuente de rutas y ajustes**. `.env` define todo explícitamente, `config.sh` solo aporta defaults genéricos (sin tu layout ni tus IPs) si algo falta. Cópialo y ajusta lo que necesites:
+El proyecto usa un archivo `.env` como **única fuente de rutas y ajustes**.
+`.env` define todo explícitamente, `config.sh` solo aporta defaults genéricos
+(sin tu layout ni tus IPs) si algo falta. Cópialo y ajusta lo que necesites:
 
 ```bash
 cp .env.example .env
@@ -129,7 +132,8 @@ AW_FALLBACK_URL="http://192.168.1.XXX:5600"  # IP del servidor AW de tu red
 # AW_VIM_BUCKET="aw-watcher-vim_tu_host"
 ```
 
-> `.env` NO se sube a Git (es personal). `.env.example` sí se sube como referencia.
+> `.env` NO se sube a Git (es personal). `.env.example` sí se sube como
+> referencia.
 
 ### 2. Hyprland keybindings (esenciales 8)
 
@@ -183,27 +187,30 @@ systemctl --user enable --now mpd
 
 ### Atajos de teclado (esenciales 8)
 
-| Atajo | Acción |
-|-------|--------|
-| `SUPER+N` | Abrir Hub (menú principal) |
-| `SUPER+J` | Journal del día |
-| `SUPER+Alt+C` | Capturar (nota o tarea) |
+| Atajo         | Acción                        |
+| ------------- | ----------------------------- |
+| `SUPER+N`     | Abrir Hub (menú principal)    |
+| `SUPER+J`     | Journal del día               |
+| `SUPER+Alt+C` | Capturar (nota o tarea)       |
 | `SUPER+Alt+U` | Buscar en notas (fzf en tmux) |
-| `SUPER+Alt+Z` | Deshacer última acción |
-| `SUPER+Alt+Y` | ¿Qué estaba haciendo ayer? |
-| `SUPER+Alt+F` | Toggle Focus Mode |
-| `SUPER+Alt+D` | Flow state detector |
+| `SUPER+Alt+Z` | Deshacer última acción        |
+| `SUPER+Alt+Y` | ¿Qué estaba haciendo ayer?    |
+| `SUPER+Alt+F` | Toggle Focus Mode             |
+| `SUPER+Alt+D` | Flow state detector           |
 
-> Todas las acciones aceptan llamada directa: `hub.sh <accion>`
-> (ej: `hub.sh tareas`). Ver `hub.sh help`.
-> Cada atajo apunta a su script en `scripts/` sin pasar por el menú:
-> capturar→`quick-capture-rofi.sh`, buscar→`buscar.sh`, tareas→`tareas.sh`,
-> stats→`aw-stats.sh`, focus→`focus_mode.sh`, deshacer→`undo.sh`,
-> ayer→`yesterday.sh`, flow→`flow-detect.sh`.
+> Todas las acciones aceptan llamada directa: `hub.sh <accion>` (ej:
+> `hub.sh tareas`). Ver `hub.sh help`. Cada atajo apunta a su script en
+> `scripts/` sin pasar por el menú: capturar→`quick-capture-rofi.sh`,
+> buscar→`buscar.sh`, tareas→`tareas.sh`, stats→`aw-stats.sh`,
+> focus→`focus_mode.sh`, deshacer→`undo.sh`, ayer→`yesterday.sh`,
+> flow→`flow-detect.sh`.
 
 ### Menú Hub (SUPER+N) — Menú en una sola pantalla
 
-El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales dispuestas en una sola columna que caben en una sola pantalla sin necesidad de desplazamiento. Usa el tema `themes/hub.rasi`. Cada opción lanza su script asociado directamente:
+El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
+dispuestas en una sola columna que caben en una sola pantalla sin necesidad de
+desplazamiento. Usa el tema `themes/hub.rasi`. Cada opción lanza su script
+asociado directamente:
 
 - **Capturar** → `quick-capture-rofi.sh` (nueva nota o tarea)
 - **Buscar** → `buscar.sh` (búsqueda en notas con fzf en tmux)
@@ -218,11 +225,13 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 
 ### Focus Mode
 
-1. Marca una tarea con 🎯 en tu archivo de tareas activas (desde `tareas.sh` con `Alt+d`)
+1. Marca una tarea con 🎯 en tu archivo de tareas activas (desde `tareas.sh` con
+   `Alt+d`)
 2. Activa focus: `SUPER+Alt+F` o Hub → 🍅 Enfocar
 3. Selecciona música (shuffle, carpeta específica, o sin música)
 4. Se bloquean distracciones y arranca pomodoro
-5. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea en timew
+5. Al terminar: Hub → 🛑 Parar Focus → si había 🎯, pregunta proyecto y loguea
+   en timew
 6. Si no hay 🎯: focus arranca genérico y al parar **no pregunta proyecto**
 
 ### Música
@@ -235,26 +244,30 @@ El menú Hub (activado con `SUPER+N`) muestra un conjunto de opciones esenciales
 ### "¿Qué estaba haciendo ayer?" (`SUPER+Alt+Y`)
 
 Muestra un resumen rápido para retomar el hilo:
+
 - **Actividad de ayer**: apps más usadas (via ActivityWatch, día local)
-- **Journal de ayer**: tu journal de ayer (si no existe, el más reciente anterior a hoy — nunca el de hoy)
+- **Journal de ayer**: tu journal de ayer (si no existe, el más reciente
+  anterior a hoy — nunca el de hoy)
 - **Tareas pendientes**: las de `TODO_ACTIVO` (qué queda por hacer)
 - **Hoy**: fecha, hora y pomodoros completados
 
-> Si un día no usaste el PC (finde, etc.), verás "Sin datos de ayer": es correcto, no un error.
+> Si un día no usaste el PC (finde, etc.), verás "Sin datos de ayer": es
+> correcto, no un error.
 
 ### Brain dump y notas de voz (`SUPER+Alt+B` / `SUPER+Alt+T` / `SUPER+Alt+M`)
 
-- **B**: rofi de una línea → se añade `- HH:MM idea` al `brain_dump/dump_HOY.md`.
-  `daily-routine` las cuenta como "ideas sin triar".
+- **B**: rofi de una línea → se añade `- HH:MM idea` al
+  `brain_dump/dump_HOY.md`. `daily-routine` las cuenta como "ideas sin triar".
 - **T**: script local de triaje del brain_dump (opcional, no va en el repo).
 - **M**: graba 5s con `pw-record` (16kHz mono) y transcribe vía `STT_URL`
   (webhook HTTP configurable). Si `STT_URL` no está o falla, intenta `whisper`
-  local; si todo falla, guarda el wav en `00_inbox/voice/` y deja la nota
-  con su ruta para transcribir después.
+  local; si todo falla, guarda el wav en `00_inbox/voice/` y deja la nota con su
+  ruta para transcribir después.
 
 #### Requisitos de transcripción de voz (STT)
 
-Para que **SUPER+Alt+M** devuelva texto (y no solo el wav), necesitás una de estas opciones, configurada en `.env`:
+Para que **SUPER+Alt+M** devuelva texto (y no solo el wav), necesitás una de
+estas opciones, configurada en `.env`:
 
 ```bash
 # Opción A — webhook de orquestación (p. ej. orquestador-HTTP u otro servicio HTTP)
@@ -266,22 +279,25 @@ STT_URL="http://<TU_SERVIDOR>:<PUERTO>/webhook/voice-note"
 
 **Si usás la opción A, el servicio remoto debe estar levantado:**
 
-| Componente | Qué hace |
-|---|---|
-| **Orquestador** (p. ej. orquestador-HTTP) | Recibe el wav en `POST /webhook/voice-note` y lo reenvía al STT |
-| **STT** (p. ej. servicio-STT-compatible/whisper) | Transcribe el audio y devuelve `{"text":"..."}` |
-| **Modelo** | Cualquier modelo whisper compatible con tu servicio STT |
+| Componente                                       | Qué hace                                                        |
+| ------------------------------------------------ | --------------------------------------------------------------- |
+| **Orquestador** (p. ej. orquestador-HTTP)        | Recibe el wav en `POST /webhook/voice-note` y lo reenvía al STT |
+| **STT** (p. ej. servicio-STT-compatible/whisper) | Transcribe el audio y devuelve `{"text":"..."}`                 |
+| **Modelo**                                       | Cualquier modelo whisper compatible con tu servicio STT         |
 
-Flujo: `voice-note.sh` → `curl -F file=@wav $STT_URL` → orquestador → STT → `{"text":"..."}` → brain dump.
+Flujo: `voice-note.sh` → `curl -F file=@wav $STT_URL` → orquestador → STT →
+`{"text":"..."}` → brain dump.
 
-Sin `STT_URL` y sin `whisper` local, la nota se guarda igual con la ruta del wav (sin transcribir).
+Sin `STT_URL` y sin `whisper` local, la nota se guarda igual con la ruta del wav
+(sin transcribir).
 
-> `ALT+B` estaba ocupado por el WaybarLayout del sistema: `UserKeybinds.conf`
-> lo libera con `unbind` antes de asignarlo al brain dump.
+> `ALT+B` estaba ocupado por el WaybarLayout del sistema: `UserKeybinds.conf` lo
+> libera con `unbind` antes de asignarlo al brain dump.
 
 ### Flow State Detector (`SUPER+Alt+D`)
 
 Analiza tu actividad reciente y te notifica si:
+
 - Llevas **25+ min** en la misma app
 - Estás en **Firefox** → "¿Esto es productivo?"
 - Estás en **terminal/editor** → "Mantén el ritmo 🍅"
@@ -289,9 +305,12 @@ Analiza tu actividad reciente y te notifica si:
 
 ### 4. Integración Waybar (Pomodoro)
 
-Para añadir el icono de Pomodoro en tu barra de Waybar, edita tu archivo de configuración de Waybar (normalmente `~/.config/waybar/config` o `~/.config/waybar/config.jsonc`) y añade un módulo `custom/pomodoro`.
+Para añadir el icono de Pomodoro en tu barra de Waybar, edita tu archivo de
+configuración de Waybar (normalmente `~/.config/waybar/config` o
+`~/.config/waybar/config.jsonc`) y añade un módulo `custom/pomodoro`.
 
-Asegúrate de que `pomodoro-daemon.sh` esté corriendo en segundo plano (puedes añadirlo a tu `autostart` de Hyprland).
+Asegúrate de que `pomodoro-daemon.sh` esté corriendo en segundo plano (puedes
+añadirlo a tu `autostart` de Hyprland).
 
 ```jsonc
 "custom/pomodoro": {
@@ -310,7 +329,9 @@ Asegúrate de que `pomodoro-daemon.sh` esté corriendo en segundo plano (puedes 
 bash tests/run_tests.sh
 ```
 
-Suite headless en sandbox `/tmp`: copia el repo, usa `.env`/vault/sesiones tmux de mentira y rofi falso. Cubre config (precedencia `.env`), yesterday (journal de ayer, nunca hoy), tareas Done, undo, journal y AW-resolve.
+Suite headless en sandbox `/tmp`: copia el repo, usa `.env`/vault/sesiones tmux
+de mentira y rofi falso. Cubre config (precedencia `.env`), yesterday (journal
+de ayer, nunca hoy), tareas Done, undo, journal y AW-resolve.
 
 Con tripwire: si un test toca el repo real o `~/notes`, la suite falla.
 
@@ -324,29 +345,34 @@ Añade estas líneas a tu `~/.zshrc` (o `~/.bashrc`) para atajos rápidos:
 # TDO Hub aliases
 alias tdo-hub="cd ~/.local/bin/tdo-hub"
 alias tdo-reload="source ~/.zshrc"
-alias tdo-journal="bash ~/.local/bin/tdo-hub/scripts/notes/journal.sh"
-alias tdo-capture="bash ~/.local/bin/tdo-hub/scripts/capture/quick-capture-rofi.sh"
-alias tdo-focus="bash ~/.local/bin/tdo-hub/scripts/focus/focus_mode.sh"
-alias tdo-undone="bash ~/.local/bin/tdo-hub/scripts/notes/undo.sh"
-alias tdo-aw="bash ~/.local/bin/tdo-hub/scripts/stats/aw-stats.sh"
-alias tdo-yesterday="bash ~/.local/bin/tdo-hub/scripts/notes/yesterday.sh"
-alias tdo-flow="bash ~/.local/bin/tdo-hub/scripts/focus/flow-detect.sh"
+alias tdo-journal="~/.local/bin/tdo-hub/scripts/notes/journal.sh"
+alias tdo-capture="~/.local/bin/tdo-hub/scripts/capture/quick-capture-rofi.sh"
+alias tdo-focus="~/.local/bin/tdo-hub/scripts/focus/focus_mode.sh"
+alias tdo-undone="~/.local/bin/tdo-hub/scripts/notes/undo.sh"
+alias tdo-aw="~/.local/bin/tdo-hub/scripts/stats/aw-stats.sh"
+alias tdo-yesterday="~/.local/bin/tdo-hub/scripts/notes/yesterday.sh"
+alias tdo-flow="~/.local/bin/tdo-hub/scripts/focus/flow-detect.sh"
 ```
 
-Con estos aliases puedes ejecutar acciones principales sin escribir la ruta completa, ej: `tdo-focus` en lugar de `bash ~/.local/bin/tdo-hub/scripts/focus/focus_mode.sh`.
+Con estos aliases puedes ejecutar acciones principales sin escribir la ruta
+completa, ej: `tdo-focus` en lugar de
+`bash ~/.local/bin/tdo-hub/scripts/focus/focus_mode.sh`.
 
 ---
 
 ## Cron jobs
 
-Para programar tareas periódicas, añade las siguientes líneas a tu `crontab` (`crontab -e`):
+Para programar tareas periódicas, añade las siguientes líneas a tu `crontab`
+(`crontab -e`):
 
-| Horario | Script | Descripción |
-|---------|--------|-------------|
-| `0 9 * * *` | `daily-routine.sh` | Resumen del día a las 9:00 |
+| Horario      | Script                           | Descripción                         |
+| ------------ | -------------------------------- | ----------------------------------- |
+| `0 9 * * *`  | `daily-routine.sh`               | Resumen del día a las 9:00          |
 | `21 * * * *` | `notify-send "Journal reminder"` | Recordatorio de journal a las 21:00 |
 
-Los scripts `daily-routine.sh` y otros están en `scripts/notes/` y deben ser ejecutables. Asegúrate de que la variable `SESSION` en tu `.env` coincida con el nombre de sesión tmux que usarán los scripts.
+Los scripts `daily-routine.sh` y otros están en `scripts/notes/` y deben ser
+ejecutables. Asegúrate de que la variable `SESSION` en tu `.env` coincida con el
+nombre de sesión tmux que usarán los scripts.
 
 ---
 

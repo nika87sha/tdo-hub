@@ -77,10 +77,10 @@ entry {
 
 /* ---- Listbox ---- */
 listbox {
-    spacing:                    4px;
+    spacing:                    2px;
     orientation:                vertical;
     children:                   [ "message", "listview" ];
-    border-radius:              10px;
+    border-radius:              5px;
     border:                     1px;
     border-color:               @active-background;
     background-color:           @background;
