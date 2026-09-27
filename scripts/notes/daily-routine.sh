@@ -18,6 +18,22 @@ create_daily_entry() {
         mkdir -p "$(dirname "$ARCHIVO")"
         apply_template "$TEMPLATES_DIR/entry.md" "$ARCHIVO" "Diario $(date +%F)"
     }
+    # Inyectar brain dump highlights (líneas con ★) en el journal
+    inject_brain_dump_highlights "$ARCHIVO"
+}
+
+inject_brain_dump_highlights() {
+    local journal_file="$1"
+    local braindump_file="$INBOX_DIR/brain_dump/dump_$(date +%F).md"
+    [[ -f "$braindump_file" ]] || return 0
+    
+    # Extraer solo líneas con ★ y formatearlas
+    local highlights
+    highlights=$(grep '^★' "$braindump_file" 2>/dev/null | sed 's/^★ /- ★ /')
+    [[ -z "$highlights" ]] && return 0
+    
+    # Insertar después de "## 💭 Brain dump (highlights)"
+    sed -i "/^## 💭 Brain dump (highlights)/a\\$highlights" "$journal_file"
 }
 
 get_priority_tasks() {

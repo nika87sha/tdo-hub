@@ -19,6 +19,18 @@ WHISPER_MODEL="${WHISPER_MODEL:-$HOME/.local/share/whisper.cpp/ggml-base.bin}"
 # dBFS: habla ≈ -3, silencio digital ≈ -91. Umbral conservador.
 SILENCE_DB="${SILENCE_DB:--50}"
 
+# Palabras clave que marcan automáticamente con ★
+AUTO_STAR_KEYWORDS="idea|aprendizaje|importante|clave|nota|recordar|insight|descubrir|problema|solución|bug|feature|deploy|reunión|meeting|llamada|email|pendiente|urgente|deadline|fecha|task|todo"
+
+auto_star() {
+    local texto="$1"
+    if echo "$texto" | grep -qiE "$AUTO_STAR_KEYWORDS"; then
+        echo "★ $texto"
+    else
+        echo "$texto"
+    fi
+}
+
 pick_recorder() {
     if command -v pw-record &>/dev/null; then
         echo "pw-record --rate=16000 --channels=1"
@@ -117,6 +129,7 @@ voice_append() {
         printf -- '---\ndate: %s\ntags: [brain_dump]\n---\n\n# Brain Dump %s\n' "$today" "$today" > "$f"
     fi
     if [[ -n "$texto" ]]; then
+        texto=$(auto_star "$texto")
         printf -- '- %s 🎙️ %s\n' "$(date +%H:%M)" "$texto" >> "$f"
     else
         printf -- '- %s 🎙️ (audio sin transcribir: %s)\n' "$(date +%H:%M)" "$wav_ref" >> "$f"

@@ -18,10 +18,23 @@ brain_file_today() {
     echo "$f"
 }
 
+# Palabras clave que marcan automáticamente con ★
+AUTO_STAR_KEYWORDS="idea|aprendizaje|importante|clave|nota|recordar|insight|descubrir|problema|solución|bug|feature|deploy|reunión|meeting|llamada|email|pendiente|urgente|importante|deadline|fecha|task|todo"
+
+auto_star() {
+    local texto="$1"
+    if echo "$texto" | grep -qiE "$AUTO_STAR_KEYWORDS"; then
+        echo "★ $texto"
+    else
+        echo "$texto"
+    fi
+}
+
 brain_append() {
     local texto="$1"
     [[ -z "$texto" ]] && return 1
     local f=$(brain_file_today)
+    texto=$(auto_star "$texto")
     printf -- '- %s %s\n' "$(date +%H:%M)" "$texto" >> "$f"
     notify "🧠 Guardado" "$texto"
     echo "$f"

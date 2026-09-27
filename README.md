@@ -248,6 +248,7 @@ Muestra un resumen rápido para retomar el hilo:
 - **Actividad de ayer**: apps más usadas (via ActivityWatch, día local)
 - **Journal de ayer**: tu journal de ayer (si no existe, el más reciente
   anterior a hoy — nunca el de hoy)
+  - Plantilla mejorada: ahora incluye **Energía (1-5)**, **Foco del día**, **Brain dump highlights** (solo líneas ★), y tu log habitual
 - **Tareas pendientes**: las de `TODO_ACTIVO` (qué queda por hacer)
 - **Hoy**: fecha, hora y pomodoros completados
 
@@ -257,12 +258,16 @@ Muestra un resumen rápido para retomar el hilo:
 ### Brain dump y notas de voz (`SUPER+Alt+B` / `SUPER+Alt+T` / `SUPER+Alt+M`)
 
 - **B**: rofi de una línea → se añade `- HH:MM idea` al
-  `brain_dump/dump_HOY.md`. `daily-routine` las cuenta como "ideas sin triar".
+  `brain_dump/dump_HOY.md`.
+  - **Auto-★**: si la entrada contiene palabras clave como *idea, aprendizaje, importante, clave, nota, recordar, insight, problema, solución, bug, feature, deploy, reunión, meeting, llamada, email, pendiente, urgente, deadline*, se premarca con `★`.
+  - **Inyección inteligente**: `daily-routine` inyecta en el journal **solo las líneas con ★** (highlights), no todo el brain dump.
 - **T**: script local de triaje del brain_dump (opcional, no va en el repo).
 - **M**: graba 5s con `pw-record` (16kHz mono) y transcribe vía `STT_URL`
   (webhook HTTP configurable). Si `STT_URL` no está o falla, intenta `whisper`
   local; si todo falla, guarda el wav en `00_inbox/voice/` y deja la nota con su
   ruta para transcribir después.
+  - **Auto-★ en voz**: igual que en rofi, detecta keywords en la transcripción y premarca con `★`.
+  - El wav se borra si transcribe OK; si falla, se guarda en `00_inbox/voice/`.
 
 #### Requisitos de transcripción de voz (STT)
 
@@ -327,7 +332,15 @@ añadirlo a tu `autostart` de Hyprland).
 
 ```bash
 bash tests/run_tests.sh
+# o con bats directamente:
+bats tests/
 ```
+
+Suites Bats (`tests/*.bats`):
+- `core_atomic_ops.bats` — atomic_sed_replace, atomic_write/read_tasks
+- `core_sanitize.bats` — sanitize_for_sed/regex/shell/filename/json/url
+- `core_task_helpers.bats` — task parsing, priority, sorting, filtering
+- `core_aw_client.bats` — duration formatting, date helpers
 
 Suite headless en sandbox `/tmp`: copia el repo, usa `.env`/vault/sesiones tmux
 de mentira y rofi falso. Cubre config (precedencia `.env`), yesterday (journal
