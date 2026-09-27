@@ -51,7 +51,7 @@ open_note() {
             tmux send-keys -t "$SESSION:$win" "nvim '$file'" Enter
         elif [[ "$proc" == "nvim" || "$proc" == "vim" ]]; then
             tmux select-window -t "$SESSION:$win" 2>/dev/null
-            hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
+            tmux_focus_terminal
             return
         else
             tmux send-keys -t "$SESSION:$win" "nvim '$file'" Enter
@@ -62,7 +62,7 @@ open_note() {
         tmux send-keys -t "$SESSION:$win" "nvim '$file'" Enter
     fi
     tmux select-window -t "$SESSION:$win" 2>/dev/null
-    hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
+    tmux_focus_terminal
 }
 
 # --- RUTINA DIARIA ---
@@ -264,6 +264,7 @@ _open_win() {
         local proc=$(tmux list-panes -t "$SESSION:$name" -F '#{pane_current_command}' 2>/dev/null | head -1)
         if [[ "$proc" == "nvim" || "$proc" == "vim" ]]; then
             tmux select-window -t "$SESSION:$name" 2>/dev/null
+            tmux_focus_terminal
         else
             tmux send-keys -t "$SESSION:$name" "$cmd" Enter
             tmux select-window -t "$SESSION:$name" 2>/dev/null
@@ -274,7 +275,7 @@ _open_win() {
         tmux send-keys -t "$SESSION:$name" "$cmd" Enter
         tmux select-window -t "$SESSION:$name" 2>/dev/null
     fi
-    hyprctl dispatch 'hl.dsp.focus({ window = "class:Alacritty" })' 2>/dev/null
+    tmux_focus_terminal
 }
 
 
