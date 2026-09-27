@@ -27,13 +27,18 @@ inject_brain_dump_highlights() {
     local braindump_file="$INBOX_DIR/brain_dump/dump_$(date +%F).md"
     [[ -f "$braindump_file" ]] || return 0
     
-    # Extraer solo líneas con ★ y formatearlas
+    # Extraer solo líneas con ★
     local highlights
-    highlights=$(grep '^★' "$braindump_file" 2>/dev/null | sed 's/^★ /- ★ /')
+    highlights=$(grep '^- ★' "$braindump_file" 2>/dev/null)
     [[ -z "$highlights" ]] && return 0
     
-    # Insertar después de "## 💭 Brain dump (highlights)"
-    sed -i "/^## 💭 Brain dump (highlights)/a\\$highlights" "$journal_file"
+    # Crear archivo temporal con las líneas a insertar
+    local tmp_file=$(mktemp)
+    echo "$highlights" > "$tmp_file"
+    
+    # Insertar después de "## 💭 Brain dump (highlights)" usando r (read file)
+    sed -i "/^## 💭 Brain dump (highlights)/r $tmp_file" "$journal_file"
+    rm -f "$tmp_file"
 }
 
 get_priority_tasks() {
