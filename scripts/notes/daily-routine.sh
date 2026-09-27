@@ -25,18 +25,37 @@ create_daily_entry() {
 inject_brain_dump_highlights() {
     local journal_file="$1"
     local braindump_file="$INBOX_DIR/brain_dump/dump_$(date +%F).md"
-    [[ -f "$braindump_file" ]] || return 0
+    [[ ! -f "$braindump_file" ]] && return 0
     
-    # Extraer solo líneas con ★
-    local highlights
-    highlights=$(grep '^- ★' "$braindump_file" 2>/dev/null)
-    [[ -z "$highlights" ]] && return 0
+    # Extraer highlights del brain dump (líneas que contienen ★)
+    local new_highlights
+    new_highlights=$(grep '★' "$braindump_file" 2>/dev/null)
+    [[ -z "$new_highlights" ]] && return 0
     
-    # Crear archivo temporal con las líneas a insertar
+    # Si el journal no existe, crearlo con template e inyectar
+    if [[ ! -f "$journal_file" ]]; then
+        create_daily_entry
+    fi
+    
+    # Leer highlights ya existentes en el journal (solo la sección, sin comentarios)
+    local existing_highlights
+    existing_highlights=$(sed -n '/^## 💭 Brain dump (highlights)/,/^## [^💭]/p' "$journal_file" 2>/dev/null | \
+        sed -n '/^- ★/p' | sed 's/^- ★ *//' | sort -u)
+    
+    # Filtrar solo highlights nuevos (que no estén ya en el journal)
+    local to_add
+    to_add=$(echo "$new_highlights" | sed 's/.*★ *//' | sort -u | \
+        awk -v existing="$existing_highlights" 'BEGIN {split(existing, ex, "\n"); for(i in ex) seen[ex[i]]=1} !seen[$0]')
+    
+    [[ -z "$to_add" ]] && return 0
+    
+    # Convertir a formato para insertar
+    local to_insert
+    to_insert=$(echo "$to_add" | sed 's/^/- ★ /')
+    
+    # Crear archivo temporal e insertar después de la sección
     local tmp_file=$(mktemp)
-    echo "$highlights" > "$tmp_file"
-    
-    # Insertar después de "## 💭 Brain dump (highlights)" usando r (read file)
+    echo "$to_insert" > "$tmp_file"
     sed -i "/^## 💭 Brain dump (highlights)/r $tmp_file" "$journal_file"
     rm -f "$tmp_file"
 }
